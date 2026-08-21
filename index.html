@@ -520,7 +520,6 @@ body.tv .bat{cursor:default}
   text-transform:uppercase;color:var(--ink2);margin:0 0 4px;line-height:1.15}
 
 /* ---------- acessos ---------- */
-#acwrap[hidden]{display:none!important}
 .acth{font-family:'Barlow Condensed';font-size:25px;font-weight:700;text-transform:uppercase;
   letter-spacing:.02em;margin:0 0 3px}
 .actp{font-size:12.5px;color:var(--ink3);line-height:1.5;margin:0 0 16px;max-width:620px}
@@ -528,6 +527,68 @@ body.tv .bat{cursor:default}
   padding:2px 7px;border-radius:5px;letter-spacing:.04em}
 .ordb.del:hover:not(:disabled){background:#FDECEE;border-color:var(--danger);color:var(--danger)}
 .vazioc{padding:26px 12px;text-align:center;color:var(--ink3);font-size:13px}
+
+/* ---------- perdas por motivo ---------- */
+.perdt{font-family:'Barlow Condensed';font-size:21px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.02em;margin:26px 0 10px}
+.perdb{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.perdb.vermelho{border-color:#F0BFC4}
+.perdb.laranja{border-color:#F0D5AC}
+.perdh{display:flex;align-items:baseline;gap:10px;padding:9px 14px;color:#fff;
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.perdb.vermelho .perdh{background:var(--danger)}
+.perdb.laranja .perdh{background:#B45309}
+.perdh span{flex:1}
+.perdh b{font-family:'JetBrains Mono';font-size:17px;letter-spacing:0}
+.perdc{padding:12px 14px;background:var(--surface)}
+.perdm{padding-top:11px;margin-top:11px;border-top:1px solid var(--line2)}
+.perdm:first-child{padding-top:0;margin-top:0;border-top:0}
+.perdmh{display:flex;align-items:baseline;gap:9px;margin-bottom:6px}
+.perdmh span{font-family:'Barlow Condensed';font-size:17px;font-weight:700;flex:1}
+.perdmh b{font-family:'JetBrains Mono';font-size:13.5px}
+.perdmh i{font-style:normal;font-size:11px;color:var(--ink3)}
+.perdl{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.perdl span{width:160px;font-size:12.5px;color:var(--ink2)}
+.perdl b{width:110px;text-align:right;font-family:'JetBrains Mono';font-size:11.5px;font-weight:700}
+.perdbar{flex:1;height:7px;background:var(--line2);border-radius:999px;overflow:hidden}
+.perdbar i{display:block;height:100%;background:var(--danger)}
+.perdb.laranja .perdbar i{background:#B45309}
+.perdz{font-size:12.5px;color:var(--ink3);padding:12px 2px;line-height:1.5}
+
+/* ---------- motivos na conclusão ---------- */
+.mot{border:1px solid var(--line);border-left:3px solid #B45309;border-radius:10px;
+  padding:11px 13px;margin-top:13px;background:var(--surface)}
+.mot.q{border-left-color:var(--danger)}
+.motc{font-size:13px;color:var(--ink);margin-bottom:8px;display:flex;align-items:baseline;gap:9px}
+.mott{margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap}
+.motl{display:flex;flex-wrap:wrap;gap:6px}
+.motb{font:inherit;font-size:12.5px;padding:5px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--ink2)}
+.motb:hover{border-color:var(--ink3)}
+.motb.on{background:#1D4ED8;border-color:#1D4ED8;color:#fff}
+.motb.pr{background:#12306E;border-color:#12306E}
+.motp{margin-top:8px;font-size:11px;color:var(--ink3);line-height:1.45}
+
+/* ---------- Administração em abas ---------- */
+.adabas{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+  margin-bottom:20px;padding-bottom:0}
+.adaba{font:inherit;font-size:13px;font-weight:600;color:var(--ink3);cursor:pointer;
+  background:transparent;border:0;border-bottom:2px solid transparent;
+  padding:8px 13px 9px;margin-bottom:-1px;border-radius:7px 7px 0 0}
+.adaba:hover{color:var(--ink);background:var(--surface)}
+.adaba.on{color:#1D4ED8;border-bottom-color:#1D4ED8;background:transparent}
+.adcorpo .st:first-child{margin-top:0}
+.adp{font-size:12.5px;color:var(--ink3);line-height:1.55;margin:-4px 0 14px;max-width:620px}
+.tolx{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;background:var(--surface);margin-bottom:16px;max-width:620px}
+.tolx>div:first-child{flex:1}
+.tolx b{display:block;font-size:13.5px;font-weight:600;margin-bottom:2px}
+.tolx span{font-size:12px;color:var(--ink3)}
+.tolc{display:flex;align-items:center;gap:7px}
+.tolc input{width:74px;text-align:right;border:1px solid var(--line);border-radius:7px;
+  padding:7px 10px;font:inherit;font-family:'JetBrains Mono';font-size:14px}
+.tagm{display:inline-block;font-size:11px;background:#EAF2FE;color:#1D4ED8;
+  padding:3px 8px;border-radius:999px;margin-right:3px}
 </style>
 </head>
 <body>
@@ -550,8 +611,6 @@ body.tv .bat{cursor:default}
   <span class="usu" id="quem"><b></b></span>
   <span class="chip" id="salvo" title="Os dados ficam salvos neste navegador">—</span>
   <button class="btn sm" id="tv" title="Abrir a fila em tela cheia, para a TV">Tela da TV</button>
-  <button class="btn sm" id="baixar" title="Baixar um arquivo com tudo que foi lançado">Baixar dados</button>
-  <button class="btn sm" id="abrir" title="Carregar dados de um arquivo">Abrir dados</button>
   <input type="file" id="arq" accept="application/json,.json" hidden>
   <button class="btn sm" id="novoSaldo">+ Saldo no tanque</button>
   <button class="btn pri" id="nova">+ Nova OC</button>
@@ -597,13 +656,6 @@ body.tv .bat{cursor:default}
     <button class="btn pri" id="lgK">Entrar</button>
     <div class="lgpe">Esqueceu a senha? Peça ao administrador do sistema.</div>
   </div>
-</div>
-
-<div class="rep" id="acwrap" hidden>
-  <h2 class="acth">Acessos</h2>
-  <p class="actp">Quem pode entrar no sistema. A conta é criada aqui — a pessoa entra com o
-    e-mail e a senha que aparecem na lista, e troca a senha depois.</p>
-  <div id="acgrid"></div>
 </div>
 
 <div class="tvpanel" id="tvpanel" hidden>
@@ -690,8 +742,11 @@ const CORES={
   'Desengordurante':'#C2410C','Desinfetante':'#059669','Lava louças':'#DB2777','Lava roupas':'#2563EB',
   'Limpa canil':'#65A30D','Limpa vidros':'#0284C7','Limpador perfumado':'#9333EA','Limpeza pesada':'#B45309',
 };
-const TANQUES=[{id:'TQ 1',cap:3800},{id:'TQ 2',cap:3800},{id:'TQ 3',cap:3800},{id:'TQ 4',cap:3800},
-  {id:'TQ 5',cap:4600},{id:'TQ 6',cap:10000},{id:'TQ 7',cap:10000},{id:'TQ 8',cap:10000}];
+/* ench = tempo de enchimento, fixo por tanque (não varia com o produto) */
+const TANQUES=[{id:'TQ 1',cap:3800,ench:50},{id:'TQ 2',cap:3800,ench:50},
+  {id:'TQ 3',cap:3800,ench:50},{id:'TQ 4',cap:3800,ench:50},
+  {id:'TQ 5',cap:4600,ench:60},{id:'TQ 6',cap:10000,ench:110},
+  {id:'TQ 7',cap:10000,ench:110},{id:'TQ 8',cap:10000,ench:110}];
 /* ===== SOPRO: frascos PET fabricados internamente ===== */
 const FORA='Fabricado fora';
 const FRASCOS=[
@@ -789,6 +844,28 @@ function pendenteAntes(o){
 let LIBEROU={};      /* OCs liberadas pelo supervisor, com o motivo */
 
 const CAPACIDADES=[...new Set(TANQUES.map(t=>t.cap))].sort((a,b)=>a-b);
+
+/* =====================================================================
+   MOTIVOS — por que não bateu a meta
+   Cada motivo vale para uma ou mais etapas. Só é perguntado quando há
+   desvio acima da tolerância: pergunta à toa vira resposta qualquer.
+   ===================================================================== */
+const ETAPAS=[['setup','Setup'],['envase','Envase'],['quebra','Quebra'],['interrupcao','Interrupção']];
+let TOLERANCIA=10;                       /* minutos de desvio antes de perguntar */
+const MOTIVOS=[
+  {id:'m1',nome:'Falta de embalagem',    etapas:['quebra','interrupcao']},
+  {id:'m2',nome:'Falta de pessoas',      etapas:['setup','envase']},
+  {id:'m3',nome:'Manutenção da máquina', etapas:['envase','interrupcao']},
+  {id:'m4',nome:'Troca de molde',        etapas:['setup']},
+  {id:'m5',nome:'Falta de matéria-prima',etapas:['quebra','interrupcao']},
+  {id:'m6',nome:'Perda por qualidade',   etapas:['quebra']},
+  {id:'m7',nome:'Sobra no tanque',       etapas:['quebra']},
+  {id:'m8',nome:'Ajuste de rótulo',      etapas:['setup','envase']}
+];
+const motivosDe=et=>MOTIVOS.filter(m=>m.etapas.includes(et));
+const motivoNome=id=>{const m=MOTIVOS.find(x=>x.id===id);return m?m.nome:id;};
+/* o que a OC registrou: {etapa:{ids:[],principal:'m1'}} */
+const motivosOC=o=>o.motivos||{};
 /* campos da OC e retrato do formulário ao abrir, para saber se algo mudou */
 const CAMPOS_OC=['fVol','fTq','fPr','fBusca','fMq','fDt','fHr','fSet','fEnv','fLote',
   'fIniR','fEnvI','fFimR','fCx'];
@@ -816,6 +893,37 @@ function mudancas(antes,depois){
 }
 let ORIGINAL=null;
 const PROD_TANQUE=[...new Set(PRODUTOS.map(p=>p.tanque))].sort();
+
+/* =====================================================================
+   TEMPOS DO TANQUE
+   Enchimento é do tanque. Limpeza, fabricação e descanso são do produto.
+   Limpeza só entra quando o granel anterior naquele tanque foi outro.
+   ===================================================================== */
+const TEMPO_GRANEL={};
+PROD_TANQUE.forEach(g=>{TEMPO_GRANEL[g]={limpeza:60,fabricacao:30,descanso:0};});
+const tempoG=g=>TEMPO_GRANEL[g]||{limpeza:60,fabricacao:30,descanso:0};
+
+/* =====================================================================
+   ESPECIFICAÇÃO DE ANÁLISE — uma por granel, como no certificado
+   ===================================================================== */
+const ENSAIOS=[['cor','Cor'],['odor','Odor'],['aspecto','Aspecto'],
+  ['ph','pH'],['visc','Viscosidade (copo Ford 5)'],['ativo','Teor de ativo']];
+const QUALI=['cor','odor','aspecto'];
+const ESPEC={"ÁGUA SANITÁRIA": {"cor": "LEVEMENTE AMARELADO","odor": "CLORO","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 10.5 E 12.5","min": 10.5,"max": 12.5},"ativo": {"txt": "ENTRE 2,0-2,5%","min": 2.0,"max": 2.5}},"ALVEJANTE SEM CLORO": {"cor": "INCOLOR","odor": "LAVANDA ALVEJANTE","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 3.0 E 5.0","min": 3.0,"max": 5.0}},"AMACIANTE ROSA": {"cor": "ROSA","odor": "PERFUME CARACTERISTICO","aspecto": "LÍQUIDO VISCOSO OPACO","ph": {"txt": "ENTRE 6.0 E 7.5","min": 6.0,"max": 7.5}},"AMACIANTE AZUL": {"cor": "AZUL","odor": "PERFUME CARACTERISTICO","aspecto": "LÍQUIDO VISCOSO OPACO","ph": {"txt": "ENTRE 6.0 E 7.5","min": 6.0,"max": 7.5}},"AMACIANTE VERDE": {"cor": "VERDE","odor": "PERFUME CARACTERISTICO","aspecto": "LÍQUIDO VISCOSO OPACO","ph": {"txt": "ENTRE 6.0 E 7.5","min": 6.0,"max": 7.5}},"AMACIANTE ROXO": {"cor": "ROXO","odor": "PERFUME CARACTERISTICO","aspecto": "LÍQUIDO VISCOSO OPACO","ph": {"txt": "ENTRE 6.0 E 7.5","min": 6.0,"max": 7.5}},"AMACIANTE TRADICIONAL": {"cor": "AZUL","odor": "CONFORT","aspecto": "LÍQUIDO VISCOSO OPACO","ph": {"txt": "ENTRE 6.0 E 7.5","min": 6.0,"max": 7.5}},"DESENGORDURANTE": {"cor": "LARANJA","odor": "SEM ODOR","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 14.0 E 15.0","min": 14.0,"max": 15.0},"ativo": {"txt": "ENTRE 2.0 A 5.0 PERCENTUAL","min": 2.0,"max": 5.0}},"DESINFETANTE EUCALIPTO": {"cor": "VERDE","odor": "EUCALIPTO","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0},"ativo": {"txt": "0.47 PERCENTUAL","alvo": 0.47}},"DESINFETANTE FLORAL": {"cor": "ROSA","odor": "FLORAL","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0},"ativo": {"txt": "0.47 PERCENTUAL","alvo": 0.47}},"DESINFETANTE LAVANDA": {"cor": "ROXO","odor": "LAVANDA","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0},"ativo": {"txt": "0.47 PERCENTUAL","alvo": 0.47}},"DESINFETANTE MARINE": {"cor": "AZUL","odor": "MARINE","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0},"ativo": {"txt": "0.47 PERCENTUAL","alvo": 0.47}},"DESINFETANTE PINHO": {"cor": "CASTANHO","odor": "PINHO","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0},"ativo": {"txt": "0.47 PERCENTUAL","alvo": 0.47}},"LAVA LOUÇAS CLEAR": {"cor": "INCOLOR","odor": "CARACTERÍSTICO","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 5.5 E 7.0","min": 5.5,"max": 7.0},"visc": {"txt": "ACIMA DE 0.25","min": 0.25}},"LAVA LOUÇAS LIMÃO": {"cor": "VERDE","odor": "LIMÃO","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 5.5 E 7.0","min": 5.5,"max": 7.0},"visc": {"txt": "ACIMA DE 0.25","min": 0.25}},"LAVA LOUÇAS MAÇÃ": {"cor": "VERMELHO","odor": "MAÇÃ","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 5.5 E 7.0","min": 5.5,"max": 7.0},"visc": {"txt": "ACIMA DE 0.25","min": 0.25}},"LAVA LOUÇAS NEUTRO": {"cor": "AMARELO","odor": "CARACTERÍSTICO","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 5.5 E 7.0","min": 5.5,"max": 7.0},"visc": {"txt": "ACIMA DE 0.25","min": 0.25}},"LAVA ROUPAS GLICERINA": {"cor": "AMARELO ALARANJADO","odor": "GLICERINA","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 9.0","min": 6.0,"max": 9.0},"visc": {"txt": "ACIMA DE 0,45","min": 0.45}},"LAVA ROUPAS PREMIUM": {"cor": "AZUL","odor": "OMO MULTIAÇÃO","aspecto": "LÍQUIDO VISCOSO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 9.0","min": 6.0,"max": 9.0},"visc": {"txt": "ACIMA DE 0,45","min": 0.45}},"LIMPA CANIL": {"cor": "INCOLOR","odor": "CITRONELA","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.8 E 7.8","min": 6.8,"max": 7.8}},"LIMPA VIDROS": {"cor": "LEVEMENTE AZULADO","odor": "CARACTERÍSTICO","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0}},"LIMPADOR PERFUMADO EUFORIA": {"cor": "VERDE","odor": "EUFORIA","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0}},"LIMPADOR PERFUMADO FELICIDADE": {"cor": "VERMELHO","odor": "FELICIDADE","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 6.0 E 8.0","min": 6.0,"max": 8.0}},"LIMPEZA PESADA": {"cor": "ROXO","odor": "LAVANDA PERÓXIDO","aspecto": "LÍQUIDO LÍMPIDO","ph": {"txt": "ENTRE 9.0 E 11.0","min": 9.0,"max": 11.0}},"CLORO GEL": {"cor": "INCOLOR","odor": "CARACTERÍSTICO","aspecto": "LIQUIDO LIMPIDO VISCOSO","ph": {"txt": "ENTRE 11.0 E 13.0","min": 11.0,"max": 13.0},"ativo": {"txt": "ENTRE 2,0-2,5%","min": 2.0,"max": 2.5}}};
+const especDe=g=>ESPEC[g]||null;
+const ensaiosDe=g=>{const e=especDe(g);return e?ENSAIOS.filter(([k])=>e[k]):[];};
+/* devolve 'ok', 'fora' ou null quando ainda não foi medido */
+function confereEnsaio(g,k,valor){
+  const e=especDe(g);if(!e||!e[k])return null;
+  if(QUALI.includes(k))return valor==='ok'?'ok':(valor==='fora'?'fora':null);
+  if(valor===''||valor==null)return null;
+  const v=+String(valor).replace(',','.');
+  if(isNaN(v))return null;
+  const f=e[k];
+  if(f.min!=null&&v<f.min)return 'fora';
+  if(f.max!=null&&v>f.max)return 'fora';
+  return 'ok';
+}
 const grupoDoTanque=t=>(PRODUTOS.find(p=>p.tanque===t)||{}).grupo;
 const MAQUINAS=['MAQ 1','MAQ 2','MAQ 3'];
 /* jornada de cada máquina — ajuste aqui quando o horário mudar */
@@ -826,7 +934,7 @@ const JORNADA={
 };
 /* ===== usuários e permissões por tela ===== */
 const TELAS=[['envase','Envase'],['tanques','Tanques'],['sopro','Sopro'],
-             ['relatorio','Relatório'],['admin','Admin'],['acessos','Acessos']];
+             ['relatorio','Relatório'],['admin','Admin']];
 const NIVEIS=[['','—'],['ver','Ver'],['editar','Editar'],['excluir','Tudo']];
 const RANK={'':0,ver:1,editar:2,excluir:3};
 const USUARIOS=[
@@ -1076,6 +1184,7 @@ function bateladas(data){
     b.chave=b.origem==='saldo'?`saldo|${b.saldoId}`:`${b.data}|${b.tanque||'—'}|${b.produto}|${b.idx}`;
     const a=APONTA[b.chave]||{};
     b.obs=a.obs||'';b.liberadoEm=a.liberadoEm||'';b.log=a.log||[];b.concluidoEm=a.concluidoEm||'';
+    b.analise=a.analise||null;          /* {resultados:{}, por:'', em:''} */
     b.excedeCap=b.tanque?b.volume>tqOf(b.tanque).cap:false;
     if(b.origem==='saldo'){
       b.status=b.disponivel<=0&&b.ordens.every(o=>sit(o)==='concluida')?'concluido'
@@ -1088,9 +1197,55 @@ function bateladas(data){
   });
   TANQUES.forEach(t=>{
     const seq=list.filter(b=>b.tanque===t.id).sort((a,b)=>a.prontoAte-b.prontoAte);
-    seq.forEach((b,i)=>{b.ordem=i+1;b.total=seq.length;});
+    seq.forEach((b,i)=>{
+      b.ordem=i+1;b.total=seq.length;
+      /* limpeza só quando o granel anterior naquele tanque foi outro */
+      b.trocouProduto=i===0?true:seq[i-1].produto!==b.produto;
+    });
   });
+  list.forEach(b=>{b.etapas=etapasDoLote(b);});
   return list;
+}
+
+/* =====================================================================
+   LINHA DO TEMPO DO LOTE
+   limpeza (se trocou de produto) → enchimento → fabricação → descanso
+   → análise. O envase só pode começar quando tudo isso terminou.
+   ===================================================================== */
+function etapasDoLote(b){
+  const g=tempoG(b.produto);
+  const ench=b.tanque?(tqOf(b.tanque)||{}).ench||0:0;
+  const passos=[];
+  if(b.trocouProduto&&g.limpeza)passos.push({k:'limpeza',rot:'Limpeza',min:g.limpeza,
+    nota:'trocou de produto'});
+  if(ench)passos.push({k:'enchimento',rot:'Enchimento',min:ench,
+    nota:'separação das MPs em paralelo'});
+  if(g.fabricacao)passos.push({k:'fabricacao',rot:'Fabricação',min:g.fabricacao,nota:''});
+  if(g.descanso)passos.push({k:'descanso',rot:'Descanso',min:g.descanso,nota:''});
+  const total=passos.reduce((s,p)=>s+p.min,0);
+  /* o preparo termina quando a primeira OC quer envasar; começa antes disso */
+  const fimPreparo=b.prontoAte===Infinity?null:b.prontoAte;
+  let t0=fimPreparo!=null?fimPreparo-total:null;
+  passos.forEach(p=>{if(t0!=null){p.de=t0;p.ate=t0+p.min;t0=p.ate;}});
+  return {passos,total,inicio:fimPreparo!=null?fimPreparo-total:null,
+    fimPreparo:fimPreparo,pronto:b.liberadoEm?hm(b.liberadoEm):null};
+}
+/* a que horas o envase pode começar de verdade */
+function liberadoAPartir(b){
+  if(b.liberadoEm)return hm(b.liberadoEm);
+  return b.etapas&&b.etapas.fimPreparo!=null?b.etapas.fimPreparo:null;
+}
+/* a análise cumpre a especificação? */
+function analiseOk(b){
+  const ens=ensaiosDe(b.produto);
+  if(!ens.length)return {ok:true,pend:[],fora:[]};
+  const r=(b.analise&&b.analise.resultados)||{};
+  const pend=[],fora=[];
+  ens.forEach(([k,rot])=>{
+    const s=confereEnsaio(b.produto,k,r[k]);
+    if(s===null)pend.push(rot); else if(s==='fora')fora.push(rot);
+  });
+  return {ok:!pend.length&&!fora.length,pend,fora,desvio:!!(b.analise&&b.analise.desvio)};
 }
 const batDe=o=>bateladas(o.data).find(b=>b.ordens.some(x=>x.id===o.id));
 const loteDe=o=>{const b=batDe(o);return b?b.status:'aguardando';};
@@ -1181,13 +1336,11 @@ function render(){
   M('spwrap').hidden=S.page!=='sopro';
   M('repwrap').hidden=S.page!=='relatorio';
   M('adwrap').hidden=S.page!=='admin';
-  M('acwrap').hidden=S.page!=='acessos';
-  M('side').hidden=['relatorio','admin','acessos'].includes(S.page);
+  M('side').hidden=['relatorio','admin'].includes(S.page);
   if(S.page==='envase'){gradeFila(c);lateralEnvase();}
   else if(S.page==='tanques'){gradeTanques();lateralTanques();}
   else if(S.page==='sopro'){gradeSopro();lateralSopro();}
   else if(S.page==='admin')gradeAdmin();
-  else if(S.page==='acessos')gradeAcessos();
   else gradeRelatorio();
   agendarSalvar();
 }
@@ -1198,7 +1351,7 @@ function topo(conf){
   M('nova').style.display=['relatorio','admin','sopro'].includes(S.page)?'none':'';
   M('novoSaldo').style.display=S.page==='tanques'?'':'none';
   const d=S.page==='envase'?S.ref:S.refTq;
-  M('prev').disabled=M('next').disabled=['admin','acessos'].includes(S.page);
+  M('prev').disabled=M('next').disabled=(S.page==='admin');
   const nomes={envase:'Envase',tanques:'Tanques',sopro:'Sopro',relatorio:'Relatórios',admin:'Administração'};
   try{M('ondeest').textContent=nomes[S.page]||'';}catch(e){}
   if(env&&S.view!=='dia'){
@@ -1565,9 +1718,95 @@ function atribuirTanque(b,destino){
 }
 
 /* ---------- página Administração ---------- */
-function gradeAdmin(){
-  M('adgrid').innerHTML=`
-    <div class="st">Usuários e permissões</div>
+const ABAS_ADMIN=[['produtos','Produtos'],['maquinas','Máquinas'],['tanques','Tanques'],['sopro','Sopro'],['motivos','Motivos'],['pessoas','Pessoas'],['dados','Dados']];
+let ABA_ADMIN='produtos';
+function corpoAba(a){
+  switch(a){
+    case 'produtos': return `<div class="st">Produtos · frasco do sopro</div>
+    <div style="font-size:11.5px;color:var(--ink3);margin:-4px 0 10px">Itens com <b>Fabricado fora</b> não geram ordem de sopro.</div>
+    <div style="margin-bottom:10px"><input type="text" id="adBusca"
+      placeholder="Buscar por SKU ou nome" style="width:320px;border:1px solid var(--line);
+      border-radius:8px;padding:8px 11px;font-size:13px"></div>
+    <table id="adProd"><thead><tr><th>SKU</th><th>Produto</th><th class="n">Litragem</th>
+      <th class="n">Un/cx</th><th>Lote no tanque</th><th>Frasco do sopro</th></tr></thead><tbody>
+      ${PRODUTOS.map(pr=>`<tr data-lin="${(pr.codigo+' '+pr.descricao+' '+pr.tanque).toLowerCase()}">
+        <td class="mono">${pr.codigo}</td><td>${pr.descricao}</td>
+        <td class="n">${fmtLit(pr.litragem)}</td><td class="n">${pr.un_cx}</td>
+        <td>${pr.tanque}</td>
+        <td><select data-pf="${pr.codigo}">
+          ${FRASCOS.map(f=>`<option ${frascoDe(pr)===f.id?'selected':''}>${f.id}</option>`).join('')}
+          <option ${frascoDe(pr)===FORA?'selected':''}>${FORA}</option>
+        </select></td></tr>`).join('')}
+    </tbody></table>`;
+    case 'maquinas': return `<div class="st">Máquinas de envase</div>
+    <table><thead><tr><th>Máquina</th><th class="n">Início</th><th class="n">Fim</th>
+      <th class="n">Jornada</th></tr></thead><tbody>
+      ${MAQUINAS.map(m=>{const[a,b]=jorn(m);return `<tr><td><b>${m}</b></td>
+        <td class="n"><input type="time" value="${hhmm(a)}" data-ji="${m}" style="width:110px"></td>
+        <td class="n"><input type="time" value="${hhmm(b)}" data-jf="${m}" style="width:110px"></td>
+        <td class="n">${Math.floor((b-a)/60)}h ${p2((b-a)%60)}</td></tr>`;}).join('')}
+    </tbody></table>
+
+    `;
+    case 'tanques': return `<div class="st">Tanques</div>
+    <table><thead><tr><th>Tanque</th><th class="n">Capacidade (L)</th></tr></thead><tbody>
+      ${TANQUES.map((t,i)=>`<tr><td><b>${t.id}</b></td>
+        <td class="n"><input type="number" step="100" value="${t.cap}" data-tc="${i}"
+          style="width:120px;text-align:right"></td></tr>`).join('')}
+    </tbody></table>
+
+    `;
+    case 'sopro': return `<div class="st">Frascos PET</div>
+    <table><thead><tr><th>Frasco</th><th class="n">Gramatura (g)</th><th>Pescoço</th>
+      <th class="n">Produtos</th></tr></thead><tbody>
+      ${FRASCOS.map((f,i)=>`<tr>
+        <td><b>${f.id}</b></td>
+        <td class="n"><input type="number" step="0.1" value="${f.gramatura}" data-fg="${i}"
+          style="width:90px;text-align:right"></td>
+        <td><input type="text" value="${f.pescoco}" data-fp="${i}" placeholder="—" style="width:110px"></td>
+        <td class="n">${PRODUTOS.filter(p=>frascoDe(p)===f.id).length}</td></tr>`).join('')}
+    </tbody></table>
+
+    <div class="st">Sopradoras</div>
+    <table><thead><tr><th>Código</th><th>Nome</th><th class="n">Cadência (un/h)</th></tr></thead><tbody>
+      ${SOPRADORAS.map((m,i)=>`<tr><td><b>${m.id}</b></td>
+        <td><input type="text" value="${m.nome}" data-sn="${i}"></td>
+        <td class="n"><input type="number" step="50" value="${m.cad}" data-sc="${i}"
+          style="width:110px;text-align:right"></td></tr>`).join('')}
+    </tbody></table>
+
+    `;
+    case 'motivos': return `    <div class="st">Motivos de desvio</div>
+    <p class="adp">Aparecem no fechamento da OC quando o desvio passa da tolerância.
+      Cada motivo vale para as etapas marcadas — assim a lista de escolha fica curta.</p>
+    <div class="tolx">
+      <div>
+        <b>Tolerância antes de perguntar</b>
+        <span>Desvio menor que isso passa sem pergunta.</span>
+      </div>
+      <div class="tolc">
+        <input type="number" id="adTol" min="0" step="1" value="${TOLERANCIA}">
+        <span>min</span>
+      </div>
+    </div>
+    <table><thead><tr><th>Motivo</th><th>Aparece em</th><th class="n">Ações</th></tr></thead><tbody>
+      ${MOTIVOS.map(m=>`<tr>
+        <td><b>${m.nome}</b></td>
+        <td>${ETAPAS.filter(e=>m.etapas.includes(e[0]))
+              .map(e=>`<span class="tagm">${e[1]}</span>`).join(' ')||'<span class="k">nenhuma</span>'}</td>
+        <td class="n" style="white-space:nowrap">
+          <button class="ordb" data-moted="${m.id}" title="Editar">&#9998;</button>
+          <button class="ordb del" data-motdel="${m.id}" title="Excluir">&#10005;</button>
+        </td></tr>`).join('')}
+    </tbody></table>
+    <button class="btn pri sm" id="adMotNovo" style="margin-top:12px">+ Novo motivo</button>
+`;
+    case 'pessoas': return `
+    <div class="st">Acessos ao sistema</div>
+    <p class="adp">Quem entra no sistema, com e-mail e senha. A conta é criada aqui:
+      o sistema gera a senha, você anota e entrega. Ela fica visível na lista até a pessoa trocar.</p>
+    <div id="acgrid"></div>
+    <div class="st">Permissões por tela</div>
     ${!ADMIN_ABERTO?`
       <div class="vazio" style="text-align:left;padding:18px 20px">
         <div style="font-size:13px;color:var(--ink2);margin-bottom:11px">
@@ -1598,70 +1837,59 @@ function gradeAdmin(){
         <button class="btn sm" id="adFecha">Fechar cadastro</button>
       </div>`}
 
-    <div class="st">Frascos PET</div>
-    <table><thead><tr><th>Frasco</th><th class="n">Gramatura (g)</th><th>Pescoço</th>
-      <th class="n">Produtos</th></tr></thead><tbody>
-      ${FRASCOS.map((f,i)=>`<tr>
-        <td><b>${f.id}</b></td>
-        <td class="n"><input type="number" step="0.1" value="${f.gramatura}" data-fg="${i}"
-          style="width:90px;text-align:right"></td>
-        <td><input type="text" value="${f.pescoco}" data-fp="${i}" placeholder="—" style="width:110px"></td>
-        <td class="n">${PRODUTOS.filter(p=>frascoDe(p)===f.id).length}</td></tr>`).join('')}
-    </tbody></table>
+    `;
+    case 'dados': return `<div class="st">Cópia de segurança</div>
+    <div class="dados">
+      <p>Os dados ficam no banco e são salvos sozinhos. Baixar serve para guardar uma cópia
+        fora do sistema; abrir serve para restaurar essa cópia ou trazer dados de outro lugar.</p>
+      <div class="dadosb">
+        <button class="btn sm" id="adBaixar">Baixar dados</button>
+        <button class="btn sm" id="adAbrir">Abrir dados</button>
+      </div>
+      <div class="dadosw">Abrir um arquivo <b>substitui tudo</b> que está no banco agora.
+        Baixe uma cópia antes, por precaução.</div>
+    </div>
+    `;
+    default: return '';
+  }
+}
 
-    <div class="st">Sopradoras</div>
-    <table><thead><tr><th>Código</th><th>Nome</th><th class="n">Cadência (un/h)</th></tr></thead><tbody>
-      ${SOPRADORAS.map((m,i)=>`<tr><td><b>${m.id}</b></td>
-        <td><input type="text" value="${m.nome}" data-sn="${i}"></td>
-        <td class="n"><input type="number" step="50" value="${m.cad}" data-sc="${i}"
-          style="width:110px;text-align:right"></td></tr>`).join('')}
-    </tbody></table>
+function gradeAdmin(){
+  M('adgrid').innerHTML=`
+    <div class="adabas">${ABAS_ADMIN.map(([c,r])=>
+      `<button class="adaba ${c===ABA_ADMIN?'on':''}" data-aba="${c}">${r}</button>`).join('')}</div>
+    <div class="adcorpo">${corpoAba(ABA_ADMIN)}</div>`;
+  M('adgrid').querySelectorAll('[data-aba]').forEach(b=>b.onclick=()=>{
+    ABA_ADMIN=b.dataset.aba;gradeAdmin();});
 
-    <div class="st">Máquinas de envase</div>
-    <table><thead><tr><th>Máquina</th><th class="n">Início</th><th class="n">Fim</th>
-      <th class="n">Jornada</th></tr></thead><tbody>
-      ${MAQUINAS.map(m=>{const[a,b]=jorn(m);return `<tr><td><b>${m}</b></td>
-        <td class="n"><input type="time" value="${hhmm(a)}" data-ji="${m}" style="width:110px"></td>
-        <td class="n"><input type="time" value="${hhmm(b)}" data-jf="${m}" style="width:110px"></td>
-        <td class="n">${Math.floor((b-a)/60)}h ${p2((b-a)%60)}</td></tr>`;}).join('')}
-    </tbody></table>
+  /* acessos: só existem quando a aba Pessoas está aberta */
+  if(M('acgrid'))gradeAcessos();
 
-    <div class="st">Tanques</div>
-    <table><thead><tr><th>Tanque</th><th class="n">Capacidade (L)</th></tr></thead><tbody>
-      ${TANQUES.map((t,i)=>`<tr><td><b>${t.id}</b></td>
-        <td class="n"><input type="number" step="100" value="${t.cap}" data-tc="${i}"
-          style="width:120px;text-align:right"></td></tr>`).join('')}
-    </tbody></table>
-
-    <div class="st">Produtos · frasco do sopro</div>
-    <div style="font-size:11.5px;color:var(--ink3);margin:-4px 0 10px">Itens com <b>Fabricado fora</b> não geram ordem de sopro.</div>
-    <div style="margin-bottom:10px"><input type="text" id="adBusca"
-      placeholder="Buscar por SKU ou nome" style="width:320px;border:1px solid var(--line);
-      border-radius:8px;padding:8px 11px;font-size:13px"></div>
-    <table id="adProd"><thead><tr><th>SKU</th><th>Produto</th><th class="n">Litragem</th>
-      <th class="n">Un/cx</th><th>Lote no tanque</th><th>Frasco do sopro</th></tr></thead><tbody>
-      ${PRODUTOS.map(pr=>`<tr data-lin="${(pr.codigo+' '+pr.descricao+' '+pr.tanque).toLowerCase()}">
-        <td class="mono">${pr.codigo}</td><td>${pr.descricao}</td>
-        <td class="n">${fmtLit(pr.litragem)}</td><td class="n">${pr.un_cx}</td>
-        <td>${pr.tanque}</td>
-        <td><select data-pf="${pr.codigo}">
-          ${FRASCOS.map(f=>`<option ${frascoDe(pr)===f.id?'selected':''}>${f.id}</option>`).join('')}
-          <option ${frascoDe(pr)===FORA?'selected':''}>${FORA}</option>
-        </select></td></tr>`).join('')}
-    </tbody></table>`;
+  /* motivos */
+  if(M('adMotNovo'))M('adMotNovo').onclick=()=>modalMotivo(null);
+  M('adgrid').querySelectorAll('[data-moted]').forEach(b=>b.onclick=()=>
+    modalMotivo(MOTIVOS.find(x=>x.id===b.dataset.moted)));
+  M('adgrid').querySelectorAll('[data-motdel]').forEach(b=>b.onclick=()=>
+    excluirMotivo(b.dataset.motdel));
+  if(M('adTol'))M('adTol').addEventListener('change',ev=>{
+    TOLERANCIA=Math.max(0,+ev.target.value||0);agendarSalvar();
+    toast(`Tolerância: ${TOLERANCIA} min.`);});
 
   /* apelido local: grava o cadastro. Nome próprio para não sombrear salvar() da OC. */
   const gravarCad=()=>{agendarSalvar();};
-  if(!ADMIN_ABERTO){
-    M('adK').onclick=()=>{
+  /* cópia de segurança: os botões saíram do cabeçalho e vivem aqui */
+  if(M('adBaixar'))M('adBaixar').onclick=baixarDados;
+  if(M('adAbrir'))M('adAbrir').onclick=()=>M('arq').click();
+  if(!ADMIN_ABERTO&&ABA_ADMIN==='pessoas'){
+    if(M('adK'))M('adK').onclick=()=>{
       if(M('adPin').value.trim()!==SENHA_MESTRA){
         M('adErr').hidden=false;M('adPin').value='';M('adPin').focus();return;}
       ADMIN_ABERTO=true;render();
     };
-    M('adPin').addEventListener('keydown',ev=>{if(ev.key==='Enter')M('adK').onclick();});
+    if(M('adPin'))M('adPin').addEventListener('keydown',ev=>{if(ev.key==='Enter')M('adK').onclick();});
   }else{
-    M('adFecha').onclick=()=>{ADMIN_ABERTO=false;render();};
-    M('adNovo').onclick=()=>{
+    if(M('adFecha'))M('adFecha').onclick=()=>{ADMIN_ABERTO=false;render();};
+    if(M('adNovo'))M('adNovo').onclick=()=>{
       const id=Math.max(0,...USUARIOS.map(u=>u.id))+1;
       USUARIOS.push({id,nome:'Nova pessoa',pin:String(id)+'000',master:false,
         perm:{envase:'',tanques:'',sopro:'',relatorio:'',admin:''}});
@@ -1699,11 +1927,75 @@ function gradeAdmin(){
     JORNADA[e.dataset.jf][1]=e.value;gravarCad();render();});
   M('adgrid').querySelectorAll('[data-pf]').forEach(e=>e.onchange=()=>{
     FRASCO_PROD[e.dataset.pf]=e.value;gravarCad();toast('Frasco atualizado.');});
-  M('adBusca').addEventListener('input',ev=>{
+  if(M('adBusca'))M('adBusca').addEventListener('input',ev=>{
     const t=ev.target.value.trim().toLowerCase();
     M('adProd').querySelectorAll('tbody tr').forEach(tr=>{
       tr.style.display=!t||tr.dataset.lin.includes(t)?'':'none';});
   });
+}
+
+/* ---------- manutenção dos motivos ---------- */
+function modalMotivo(m){
+  const novo=!m;
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('mTit').textContent=novo?'Novo motivo':'Editar motivo';
+  M('mSub').hidden=true;M('modal').classList.remove('wide');
+  M('mB').innerHTML=`
+    <div class="fld"><label>Motivo <b>*</b></label>
+      <input id="moNome" value="${novo?'':m.nome}" placeholder="Falta de embalagem"></div>
+    <div class="fld"><label>Aparece em <b>*</b></label>
+      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin:-2px 0 8px">
+        Marque as etapas em que este motivo faz sentido.</div>
+      <div class="motl">${ETAPAS.map(([id,rot])=>{
+        const on=novo?false:m.etapas.includes(id);
+        return `<button type="button" class="motb ${on?'on':''}" data-et="${id}">${rot}</button>`;
+      }).join('')}</div></div>`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="moC">Fechar</button>
+    <button class="btn pri" id="moK">${novo?'Cadastrar':'Salvar'}</button></div>`;
+  const sel=new Set(novo?[]:m.etapas);
+  M('mB').querySelectorAll('[data-et]').forEach(b=>b.onclick=()=>{
+    const e=b.dataset.et;
+    if(sel.has(e)){sel.delete(e);b.classList.remove('on');}
+    else{sel.add(e);b.classList.add('on');}
+  });
+  M('moC').onclick=fecharModal;
+  M('moK').onclick=()=>{
+    const nome=M('moNome').value.trim();
+    if(!nome){toast('Informe o nome do motivo.',true);return;}
+    if(!sel.size){toast('Marque ao menos uma etapa.',true);return;}
+    if(MOTIVOS.some(x=>x.nome.toLowerCase()===nome.toLowerCase()&&(novo||x.id!==m.id))){
+      toast('Já existe um motivo com esse nome.',true);return;}
+    if(novo)MOTIVOS.push({id:'m'+Date.now().toString(36),nome:nome,etapas:[...sel]});
+    else{m.nome=nome;m.etapas=[...sel];}
+    agendarSalvar();fecharModal();gradeAdmin();
+    toast(novo?'Motivo cadastrado.':'Motivo atualizado.');
+  };
+  M('mask').classList.add('on');
+}
+
+function excluirMotivo(id){
+  const m=MOTIVOS.find(x=>x.id===id);if(!m)return;
+  /* quantas OCs já apontaram este motivo? apagar não pode reescrever o passado */
+  const usos=ORDENS.filter(o=>Object.values(motivosOC(o))
+    .some(v=>(v.ids||[]).includes(id))).length;
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('mTit').textContent='Excluir motivo';M('mSub').hidden=true;
+  M('mB').innerHTML=`<div class="alert">
+    <b>${m.nome}</b> deixa de aparecer no fechamento das próximas OCs.
+    ${usos?`<br><br><b>${usos} OC${usos>1?'s já usaram':' já usou'}</b> este motivo.
+      O que já foi apontado continua no histórico e no relatório — só não pode ser
+      escolhido de novo.`:''}</div>`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="mxC">Voltar</button>
+    <button class="btn del" id="mxK">Excluir</button></div>`;
+  M('mxC').onclick=fecharModal;
+  M('mxK').onclick=()=>{
+    const i=MOTIVOS.findIndex(x=>x.id===id);
+    if(i>=0)MOTIVOS.splice(i,1);
+    agendarSalvar();fecharModal();gradeAdmin();toast('Motivo excluído.');
+  };
+  M('mask').classList.add('on');
 }
 
 /* ---------- página Sopro ---------- */
@@ -2060,13 +2352,14 @@ function lateralEnvase(){
    MODAIS
    ===================================================================== */
 function fecharModal(){
+  DESTRAVADA=false;
   if(M('mAcao'))M('mAcao').innerHTML='';M('mask').classList.remove('on');M('mSub').hidden=true;M('modal').classList.remove('wide');}
 function sacudir(){const m=M('modal');m.classList.remove('sacode');void m.offsetWidth;m.classList.add('sacode');}
 
-let EDIT=null,SALDO_ATUAL=null;
+let EDIT=null,SALDO_ATUAL=null,DESTRAVADA=false;
 function abrirOrdem(o,pre){
   EDIT=o||null;
-  const fim=o&&sit(o)==='concluida';
+  const fim=o&&sit(o)==='concluida'&&!DESTRAVADA;
   const fin=o&&sit(o)==='finalizado';
   const V=(k,def)=>{if(o)return o[k]??def;
     if(pre&&pre[k]!==undefined&&pre[k]!==null&&pre[k]!=='')return pre[k];return def;};
@@ -2168,11 +2461,13 @@ function abrirOrdem(o,pre){
   /* fecha o ciclo: é aqui que as caixas produzidas entram no sistema */
   const fechas=[];
   if(o&&ed&&['preparacao','producao'].includes(sit(o))){
-    fechas.push(`<button class="btn sm" id="mFimEnv">Só encerrar envase</button>`);
-    fechas.push(`<button class="btn blue" id="mFim">Finalizar OC</button>`);
+    fechas.push(`<button class="btn blue" id="mFim">Concluir envase</button>`);
   }
+  /* OC concluída abre travada: para mexer, o usuário pede Editar de propósito */
+  if(o&&fim&&ed&&!DESTRAVADA)
+    acts.push(`<button class="btn sm" id="mEdit">Editar</button>`);
   if(o&&ed&&sit(o)==='finalizado')
-    fechas.push(`<button class="btn blue" id="mFim">Informar caixas e concluir</button>`);
+    fechas.push(`<button class="btn blue" id="mFim">Concluir envase</button>`);
 
   /* excluir fica sozinho no alto, longe dos botões que se usa todo dia */
   M('mAcao').innerHTML=(o&&!fim&&xc)?`<button class="btn del sm" id="mDel">Excluir</button>`:'';
@@ -2199,7 +2494,8 @@ function abrirOrdem(o,pre){
   if(M('mInt'))M('mInt').onclick=()=>interromper(o);
   if(M('mDel'))M('mDel').onclick=()=>excluir(o);
   if(M('mFim'))M('mFim').onclick=()=>concluir(o);
-  if(M('mFimEnv'))M('mFimEnv').onclick=()=>finalizarEnvase(o);
+  if(M('mEdit'))M('mEdit').onclick=()=>{DESTRAVADA=true;abrirOrdem(o);
+    toast('Campos liberados. O que mudar entra no histórico.');};
 
   /* lista de produtos filtrável por SKU ou nome */
   const montar=(termo)=>{
@@ -2834,7 +3130,7 @@ function abrirSaldos(){
 /* ---------- concluir ---------- */
 function concluir(o){
   const prev=caixasPrev(o);
-  if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent=o.fimReal?'Concluir OC':'Finalizar OC';
+  if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Concluir envase';
   M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} ${o.lote?` · lote ${o.lote}`:''}`;
   M('mSub').hidden=false;M('modal').classList.remove('wide');
   M('mB').innerHTML=`
@@ -2857,6 +3153,7 @@ function concluir(o){
     <div class="calc" id="cCalc"></div>
     <div class="fld"><label>Observação</label>
       <textarea id="cObs" placeholder="O que precisa ficar registrado"></textarea></div>`;
+  M('mB').insertAdjacentHTML('beforeend','<div id="cMot"></div>');
   M('mF').innerHTML=`<div style="flex:1"></div>
     <button class="btn" id="cC">Voltar</button>
     <button class="btn blue" id="cK">Concluir OC</button>`;
@@ -2879,7 +3176,50 @@ function concluir(o){
     else if(seg.length)h+=`As ${seg.length} OCs seguintes ficam no horário.`;
     M('cCalc').innerHTML=h;
   };
-  ['cCx','cFim'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));upd();
+  /* motivos: só aparecem quando o desvio passa da tolerância */
+  const escolha={};                       /* etapa -> {ids:Set, principal} */
+  Object.entries(motivosOC(o)).forEach(([et,v])=>
+    escolha[et]={ids:new Set(v.ids||[]),principal:v.principal||null});
+  const desvios=()=>{
+    const f=o.fimReal||(M('cFim')?M('cFim').value:'');
+    const cx=M('cCx').value===''?null:+M('cCx').value;
+    const l=[];
+    const ds=dvSetup({...o,fimReal:f});
+    if(ds!=null&&ds>TOLERANCIA)l.push({et:'setup',txt:`Setup passou <b>${ds} min</b> da meta`});
+    const de=(iniEnvase(o)&&f)?Math.max(0,hm(f)-hm(iniEnvase(o)))-o.envase:null;
+    if(de!=null&&de>TOLERANCIA)l.push({et:'envase',txt:`Envase passou <b>${de} min</b> da meta`});
+    if(cx!=null){
+      const perdidos=o.litros-cx*litrosCx(o);
+      if(perdidos>0)l.push({et:'quebra',txt:`Quebra de <b>${nf(perdidos)} L</b> — não fechou o volume do tanque`});
+    }
+    return l;
+  };
+  const pintarMotivos=()=>{
+    const cx=M('cMot');if(!cx)return;
+    const l=desvios();
+    if(!l.length){cx.innerHTML='';return;}
+    cx.innerHTML=l.map(d=>{
+      const e=escolha[d.et]||(escolha[d.et]={ids:new Set(),principal:null});
+      const opc=motivosDe(d.et);
+      return `<div class="mot ${d.et==='quebra'?'q':''}">
+        <div class="motc">${d.txt}<span class="mott">tolerância ${TOLERANCIA} min</span></div>
+        <div class="motl">${opc.map(m=>{
+          const on=e.ids.has(m.id),pr=e.principal===m.id;
+          return `<button type="button" class="motb ${on?'on':''} ${pr?'pr':''}"
+            data-et="${d.et}" data-m="${m.id}">${m.nome}${pr?' ★':''}</button>`;}).join('')}</div>
+        ${e.ids.size>1?`<div class="motp">★ é o motivo principal — é ele que carrega
+          ${d.et==='quebra'?'os litros':'os minutos'} no relatório. Clique de novo para trocar.</div>`:''}
+      </div>`;}).join('');
+    cx.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
+      const e=escolha[b.dataset.et],id=b.dataset.m;
+      if(!e.ids.has(id)){e.ids.add(id);if(!e.principal)e.principal=id;}
+      else if(e.principal!==id&&e.ids.size>1)e.principal=id;   /* já marcado: vira principal */
+      else {e.ids.delete(id);if(e.principal===id)e.principal=[...e.ids][0]||null;}
+      pintarMotivos();
+    });
+  };
+  const atualizar=()=>{upd();pintarMotivos();};
+  ['cCx','cFim'].forEach(i=>M(i)&&M(i).addEventListener('input',atualizar));atualizar();
   M('cK').onclick=()=>{
     const cx=M('cCx').value;
     const i=o.iniReal,sf=o.setupFim,ei=iniEnvase(o);
@@ -2891,6 +3231,21 @@ function concluir(o){
     o.fimReal=f;
     if(cx===''){toast('Informe as caixas atendidas.',true);M('cCx').focus();return;}
     const obs=M('cObs').value.trim();
+    /* exige motivo onde houve desvio: é o dado que sustenta o relatório */
+    const pend=desvios().filter(d=>!escolha[d.et]||!escolha[d.et].ids.size);
+    if(pend.length){
+      toast(`Informe o motivo: ${pend.map(p=>p.et==='quebra'?'quebra':p.et).join(', ')}.`,true);
+      return;
+    }
+    o.motivos={};
+    const descr=[];
+    Object.entries(escolha).forEach(([et,e])=>{
+      if(!e.ids.size)return;
+      o.motivos[et]={ids:[...e.ids],principal:e.principal};
+      const nomes=[...e.ids].map(i=>motivoNome(i)+(i===e.principal?' ★':''));
+      descr.push(`${(ETAPAS.find(x=>x[0]===et)||[,et])[1]}: ${nomes.join(', ')}`);
+    });
+    if(descr.length)registrar(o,'Motivos informados',null,descr.join(' · '));
     const delta=hm(f)-fimPrev(o);
     o.caixas=+cx;o.status='concluida';
     registrar(o,'OC concluída',null,
@@ -2992,6 +3347,120 @@ function lancarSaldo(){
 }
 
 /* ---------- lote de tanque ---------- */
+
+/* =====================================================================
+   LINHA DO TEMPO E CERTIFICADO — desenho e edição
+   ===================================================================== */
+function etapasHTML(b){
+  const e=b.etapas;
+  if(!e||!e.passos.length)return '';
+  const lib=liberadoAPartir(b);
+  return `<div class="lin">
+    <div class="linh">Preparo do lote · ${e.total} min no total</div>
+    ${e.passos.map(p=>`<div class="linp">
+      <span class="h">${p.de!=null?`${hhmm(p.de)}–${hhmm(p.ate)}`:'—'}</span>
+      <span class="r">${p.rot}${p.nota?` <i>${p.nota}</i>`:''}</span>
+      <span class="m">${p.min} min</span></div>`).join('')}
+    ${lib!=null?`<div class="linf">Envase pode começar às <b>${hhmm(lib)}</b></div>`:''}
+  </div>`;
+}
+
+function certificadoHTML(b){
+  const ens=ensaiosDe(b.produto);
+  if(!ens.length)return `<div class="alert">Sem especificação de análise cadastrada para
+    <b>${b.produto}</b>.</div>`;
+  const esp=especDe(b.produto);
+  const r=(b.analise&&b.analise.resultados)||{};
+  const a=analiseOk(b);
+  const trava=b.status==='concluido'?'disabled':'';
+  return `<div class="cert">
+    <div class="certh">Certificado de análise
+      <span>${b.produto} · ${b.tanque||'sem tanque'}${b.lote?` · lote ${b.lote}`:''}</span></div>
+    <table class="certt"><thead><tr>
+      <th>Análise</th><th>Especificação</th><th>Resultado</th><th class="n">Situação</th>
+    </tr></thead><tbody>
+    ${ens.map(([k,rot])=>{
+      const s=confereEnsaio(b.produto,k,r[k]);
+      const espTxt=QUALI.includes(k)?esp[k]:esp[k].txt;
+      return `<tr class="${s==='fora'?'fora':''}">
+        <td>${rot}</td>
+        <td class="k">${espTxt}</td>
+        <td>${QUALI.includes(k)
+          ? `<select data-ens="${k}" ${trava}>
+              <option value="">—</option>
+              <option value="ok" ${r[k]==='ok'?'selected':''}>Conforme</option>
+              <option value="fora" ${r[k]==='fora'?'selected':''}>Não conforme</option></select>`
+          : `<input type="text" inputmode="decimal" data-ens="${k}" ${trava}
+              value="${r[k]!=null?r[k]:''}" placeholder="—">`}</td>
+        <td class="n">${s==='ok'?'<span class="pill ok">conforme</span>'
+          :s==='fora'?'<span class="pill mau">fora</span>'
+          :'<span class="k">a medir</span>'}</td></tr>`;}).join('')}
+    </tbody></table>
+    ${a.ok?`<div class="certok">Todos os ensaios dentro da especificação.</div>`
+      :a.fora.length
+      ?`<div class="certno"><b>Lote não pode ser liberado</b><br>
+         Fora da especificação: ${a.fora.join(', ')}. Corrija o lote e refaça a análise,
+         ou registre um desvio.</div>`
+      :`<div class="certpe">Falta medir: ${a.pend.join(', ')}.</div>`}
+    ${a.desvio?`<div class="certdv">Desvio registrado por <b>${b.analise.desvioPor||'—'}</b>:
+      ${b.analise.desvioObs||''}</div>`:''}
+    ${(a.fora.length&&!a.desvio&&b.status==='aguardando')
+      ?`<button class="btn warn sm" id="certDv" style="margin-top:10px">Registrar desvio</button>`:''}
+  </div>`;
+}
+
+function ligarCertificado(b){
+  const grava=()=>{
+    const at=APONTA[b.chave]||{};
+    const res={};
+    M('mB').querySelectorAll('[data-ens]').forEach(e=>{
+      if(e.value!=='')res[e.dataset.ens]=e.value;
+    });
+    const an={...(at.analise||{}),resultados:res,em:relogio(),por:(EU&&EU.nome)||''};
+    APONTA[b.chave]={...at,analise:an};
+    agendarSalvar();
+    /* redesenha o modal para a situação de cada ensaio acompanhar */
+    const nova=bateladas(b.data).find(x=>x.chave===b.chave);
+    if(nova)abrirLote(nova);
+  };
+  M('mB').querySelectorAll('[data-ens]').forEach(e=>e.addEventListener('change',grava));
+  if(M('certDv'))M('certDv').onclick=()=>modalDesvio(b);
+}
+
+function modalDesvio(b){
+  const a=analiseOk(b);
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('mTit').textContent='Registrar desvio';
+  M('mSub').textContent=`${b.produto} · ${b.tanque||''}${b.lote?` · lote ${b.lote}`:''}`;
+  M('mSub').hidden=false;
+  M('mB').innerHTML=`
+    <div class="alert">Fora da especificação: <b>${a.fora.join(', ')}</b>.<br>
+      O desvio libera este lote e fica registrado no histórico e no relatório.
+      Só o responsável técnico deve fazer isto.</div>
+    <div class="fld"><label>Responsável técnico <b>*</b></label>
+      <select id="dvQuem"><option value="">Selecione…</option>
+      ${USUARIOS.map(u=>`<option>${u.nome}</option>`).join('')}</select></div>
+    <div class="fld"><label>Justificativa <b>*</b></label>
+      <textarea id="dvObs" placeholder="Por que este lote pode seguir mesmo assim"></textarea></div>`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="dvC">Voltar</button>
+    <button class="btn warn" id="dvK">Registrar desvio</button></div>`;
+  M('dvC').onclick=()=>abrirLote(bateladas(b.data).find(x=>x.chave===b.chave));
+  M('dvK').onclick=()=>{
+    const quem=M('dvQuem').value,obs=M('dvObs').value.trim();
+    if(!quem){toast('Informe o responsável técnico.',true);return;}
+    if(!obs){toast('Justifique o desvio.',true);return;}
+    const at=APONTA[b.chave]||{};
+    APONTA[b.chave]={...at,
+      analise:{...(at.analise||{}),desvio:true,desvioPor:quem,desvioObs:obs,desvioEm:relogio()},
+      log:[...(at.log||[]),{t:relogio(),e:'Desvio de análise registrado',op:quem,
+        m:`${a.fora.join(', ')} — ${obs}`}]};
+    agendarSalvar();
+    abrirLote(bateladas(b.data).find(x=>x.chave===b.chave));
+    toast('Desvio registrado. O lote pode ser liberado.');
+  };
+  M('mask').classList.add('on');
+}
 function abrirLote(b){
   if(!b)return;
   const trava=b.status!=='aguardando'?'disabled':'';
@@ -3006,6 +3475,8 @@ function abrirLote(b){
       na tela de Tanques antes de liberar.</div>`:''}
     ${b.status==='liberado'?`<div class="alert ok">Liberado às ${b.liberadoEm}.</div>`:''}
     ${b.status==='concluido'?`<div class="alert">Lote concluído — todo o envase terminou.</div>`:''}
+    ${etapasHTML(b)}
+    ${certificadoHTML(b)}
     <div class="fld"><label>Observação</label>
       <textarea id="lObs" ${trava} placeholder="O que precisa ficar registrado">${b.obs}</textarea></div>
     ${b.log.length?`<div class="log"><div class="st">Histórico do lote</div>
@@ -3017,11 +3488,20 @@ function abrirLote(b){
       ?`<button class="btn sm" id="lV">Voltar para a programar</button>`:''}
     <div style="flex:1"></div>
     <button class="btn" id="lC">Fechar</button>
-    ${b.status==='aguardando'&&b.tanque&&edT?`<button class="btn pri" id="lK">Liberar lote</button>`:''}`;
+    ${b.status==='aguardando'&&b.tanque&&edT
+      ?`<button class="btn pri" id="lK" ${analiseOk(b).ok||analiseOk(b).desvio?'':'disabled'}
+        >Liberar lote</button>`:''}`;
   M('lC').onclick=fecharModal;
   if(M('lV'))M('lV').onclick=()=>{fecharModal();devolverParaProgramar(b);};
 
+  ligarCertificado(b);
   if(M('lK'))M('lK').onclick=()=>{
+    const a=analiseOk(b);
+    if(!a.ok&&!a.desvio){
+      toast(a.fora.length?`Fora da especificação: ${a.fora.join(', ')}.`
+        :`Falta medir: ${a.pend.join(', ')}.`,true);
+      return;
+    }
     const at=APONTA[b.chave]||{};
     APONTA[b.chave]={...at,obs:M('lObs').value.trim(),
       liberadoEm:relogio(),
@@ -3059,6 +3539,50 @@ function abrirLiberacoes(){
 /* =====================================================================
    RELATÓRIO
    ===================================================================== */
+
+/* =====================================================================
+   PERDAS POR MOTIVO
+   Litro e minuto não se somam num percentual só, então são duas contas.
+   O peso vai para o motivo PRINCIPAL; os demais ficam registrados.
+   ===================================================================== */
+function perdasPorMotivo(l){
+  const vazio=()=>({total:0,porMaq:{}});
+  const litros=vazio(),minutos=vazio();
+  const soma=(acc,maq,id,qt)=>{
+    acc.total+=qt;
+    const m=acc.porMaq[maq]||(acc.porMaq[maq]={total:0,motivos:{}});
+    m.total+=qt; m.motivos[id]=(m.motivos[id]||0)+qt;
+  };
+  l.forEach(o=>{
+    const mt=motivosOC(o);
+    if(mt.quebra&&mt.quebra.principal){
+      const q=quebraL(o);
+      if(q&&q>0)soma(litros,o.maq,mt.quebra.principal,q);
+    }
+    ['setup','envase'].forEach(et=>{
+      if(!mt[et]||!mt[et].principal)return;
+      const d=et==='setup'?dvSetup(o):dvEnvase(o);
+      if(d!=null&&d>0)soma(minutos,o.maq,mt[et].principal,d);
+    });
+  });
+  return {litros,minutos};
+}
+function blocoPerdas(acc,titulo,unidade,cor){
+  if(!acc.total)return `<div class="perdz">Nenhum motivo registrado no período para ${titulo.toLowerCase()}.</div>`;
+  const un=v=>unidade==='L'?nf(v)+' L':(v>=60?`${Math.floor(v/60)}h${p2(Math.round(v%60))}`:Math.round(v)+' min');
+  const maqs=Object.entries(acc.porMaq).sort((a,b)=>b[1].total-a[1].total);
+  return `<div class="perdb ${cor}">
+    <div class="perdh"><span>${titulo}</span><b>${un(acc.total)}</b></div>
+    <div class="perdc">${maqs.map(([maq,d])=>`
+      <div class="perdm">
+        <div class="perdmh"><span>${maq}</span><b>${un(d.total)}</b>
+          <i>${nf1(d.total/acc.total*100)}% do total</i></div>
+        ${Object.entries(d.motivos).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`
+          <div class="perdl"><span>${motivoNome(id)}</span>
+            <div class="perdbar"><i style="width:${v/d.total*100}%"></i></div>
+            <b>${nf1(v/d.total*100)}% · ${un(v)}</b></div>`).join('')}
+      </div>`).join('')}</div></div>`;
+}
 function gradeRelatorio(){
   const data=ymd(S.refTq);
   const l=ORDENS.filter(o=>o.data===data&&ativa(o));
@@ -3163,7 +3687,11 @@ function gradeRelatorio(){
       <td class="n">${tempoReal_} min</td><td class="n">${dv>0?'+':''}${dv}</td>
       <td colspan="2"></td>
       <td class="n">${nf(volPrev)} L</td><td class="n">${nf(volFeito)} L</td>
-      <td class="n">${nf(volQuebra)} L</td><td colspan="2"></td></tr></tfoot></table>`
+      <td class="n">${nf(volQuebra)} L</td><td colspan="2"></td></tr></tfoot></table>
+    <h3 class="perdt">Por que não batemos a meta</h3>
+    ${(()=>{const p=perdasPorMotivo(feitas);
+      return blocoPerdas(p.litros,'Litros perdidos','L','vermelho')
+           + blocoPerdas(p.minutos,'Atraso','min','laranja');})()}`
     :`<div class="vazio">Nenhuma OC neste dia.</div>`}`;
 }
 
@@ -3193,7 +3721,7 @@ function estadoAtual(){
   return JSON.stringify({versao:1,gravado:new Date().toISOString(),
     vendo:ymd(S.page==='envase'?S.ref:S.refTq),
     ordens:ORDENS,aponta:APONTA,saldos:SALDOS,sopro:SOPRO,
-    cadastro:{frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,
+    cadastro:{motivos:MOTIVOS,tolerancia:TOLERANCIA,frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,
       jornada:JORNADA,frascoProd:FRASCO_PROD,usuarios:USUARIOS}});
 }
 function aplicarEstado(txt){
@@ -3204,6 +3732,8 @@ function aplicarEstado(txt){
   Object.keys(SOPRO).forEach(k=>delete SOPRO[k]);Object.assign(SOPRO,d.sopro||{});
   const cad=d.cadastro||{};
   /* frascos: casa por id e respeita a ordem gravada (as colunas são reordenáveis) */
+  if(cad.motivos&&cad.motivos.length){MOTIVOS.length=0;cad.motivos.forEach(m=>MOTIVOS.push(m));}
+  if(cad.tolerancia!=null)TOLERANCIA=+cad.tolerancia||0;
   if(cad.frascos&&cad.frascos.length){
     const sobra=FRASCOS.slice(),ordenados=[];
     cad.frascos.forEach(f=>{
@@ -3474,6 +4004,8 @@ async function criarConta(email,senha){
 /* ---------- tela ---------- */
 async function gradeAcessos(){
   const el=M('acgrid');if(!el)return;
+  if(!temNuvem()||!SESSAO){
+    el.innerHTML='<div class="vazioc">O cadastro de acessos precisa do banco online.</div>';return;}
   el.innerHTML='<div class="vazioc">carregando…</div>';
   try{ await lerAcessos(); }
   catch(e){ el.innerHTML=`<div class="vazioc">${e.message}</div>`; return; }
@@ -3660,7 +4192,7 @@ function abrirDados(file){
   r.onload=()=>{
     try{
       const d=aplicarEstado(r.result);
-      persistir();render();
+      persistir(true);render();
       toast(`${ORDENS.length} OC carregadas${d.gravado?` · arquivo de ${dCurto(d.gravado.slice(0,10))}`:''}.`);
     }catch(e){toast('Arquivo inválido: '+e.message,true);}
   };
@@ -3679,8 +4211,6 @@ M('tv').onclick=()=>{
   }catch(e){toast('Acrescente #tv no fim do endereço em outra aba.',true);}
 };
 M('novoSaldo').onclick=lancarSaldo;
-M('baixar').onclick=baixarDados;
-M('abrir').onclick=()=>M('arq').click();
 M('arq').onchange=e=>{if(e.target.files[0]){abrirDados(e.target.files[0]);e.target.value='';}};
 M('lib').onclick=abrirLiberacoes;
 M('saldo').onclick=abrirSaldos;

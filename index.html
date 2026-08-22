@@ -589,6 +589,58 @@ body.tv .bat{cursor:default}
   padding:7px 10px;font:inherit;font-family:'JetBrains Mono';font-size:14px}
 .tagm{display:inline-block;font-size:11px;background:#EAF2FE;color:#1D4ED8;
   padding:3px 8px;border-radius:999px;margin-right:3px}
+
+.tb .np{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);
+  border-radius:6px;background:var(--card);color:var(--ink2)}
+.tb .np:disabled{opacity:.45}
+.tb tr.inat{opacity:.5}
+
+/* ---------- preparo do lote ---------- */
+.lin{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin:14px 0}
+.linh{padding:8px 13px;background:var(--sunkbg,#F4F6F8);border-bottom:1px solid var(--line);
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3)}
+.linp{display:flex;align-items:center;gap:11px;padding:8px 13px;border-bottom:1px solid var(--line2)}
+.linp:last-of-type{border-bottom:0}
+.linp .h{width:104px;flex-shrink:0;font-family:'JetBrains Mono';font-size:11.5px;color:var(--ink3)}
+.linp .r{flex:1;font-size:13px;min-width:0}
+.linp .r i{font-style:normal;font-size:11.5px;color:var(--ink3)}
+.linp .m{flex-shrink:0;font-family:'JetBrains Mono';font-size:11.5px;color:var(--ink3);
+  white-space:nowrap}
+.linf{padding:9px 13px;background:#EAF2FE;color:#1D4ED8;font-size:13px;font-weight:600;
+  border-top:1px solid #BFD2FA}
+.linf b{font-family:'JetBrains Mono';font-size:15px}
+
+/* ---------- certificado de análise ---------- */
+.cert{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin:14px 0}
+.certh{padding:9px 13px;background:var(--surface);border-bottom:1px solid var(--line);
+  font-size:13.5px;font-weight:700}
+.certh span{display:block;font-size:11.5px;font-weight:400;color:var(--ink3);margin-top:2px}
+.certt{width:100%;border-collapse:collapse;table-layout:fixed}
+.certt th{padding:7px 10px;background:var(--sunkbg,#F4F6F8);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);text-align:left;
+  border-bottom:1px solid var(--line)}
+.certt th:nth-child(1){width:24%}.certt th:nth-child(2){width:32%}
+.certt th:nth-child(3){width:26%}.certt th:nth-child(4){width:18%}
+.certt td{padding:7px 10px;border-bottom:1px solid var(--line2);font-size:12.5px;
+  vertical-align:middle;word-break:break-word}
+.certt tr:last-child td{border-bottom:0}
+.certt tr.fora td{background:#FDECEE}
+.certt td.k,.certt th.n{color:var(--ink3)}
+.certt td.n{text-align:right}
+.certt select,.certt input{width:100%;font:inherit;font-size:12.5px;padding:4px 7px;
+  border:1px solid var(--line);border-radius:6px;background:var(--card);box-sizing:border-box}
+.certt input{font-family:'JetBrains Mono'}
+.certt tr.fora input{border-color:var(--danger)}
+.certok{padding:9px 13px;background:#E6F6EE;color:#15803D;font-size:12.5px;font-weight:600;
+  border-top:1px solid #BFE2CE}
+.certno{padding:10px 13px;background:#FDECEE;color:#B02A37;font-size:12.5px;line-height:1.5;
+  border-top:1px solid #F5C2C7}
+.certpe{padding:9px 13px;background:#FDF1E3;color:#8A5A08;font-size:12.5px;
+  border-top:1px solid #F0D5AC}
+.certdv{padding:10px 13px;background:#F3EAFB;color:#6D28D9;font-size:12.5px;line-height:1.5;
+  border-top:1px solid #DCC9F2}
+.btn.warn{background:#FDF1E3;border-color:#F0D5AC;color:#8A5A08}
+.btn.warn:hover{background:#F9E4CB}
 </style>
 </head>
 <body>
@@ -959,7 +1011,12 @@ const USUARIOS=[
 let ADMIN_ABERTO=false;
 let EU=null;                                   /* sessão atual */
 const usuPorPin=v=>USUARIOS.find(u=>u.pin===String(v||'').trim());
-const nivel=t=>EU?(EU.master?'excluir':(EU.perm[t]||'')):'';
+const nivel=t=>{
+  /* a permissão real vem de quem entrou no sistema; sem banco, cai no cadastro local */
+  const a=(typeof MEU_ACESSO!=='undefined')?MEU_ACESSO:null;
+  if(a)return a.master?'excluir':((a.perm||{})[t]||'');
+  return EU?(EU.master?'excluir':(EU.perm[t]||'')):'';
+};
 const podeVer=t=>RANK[nivel(t)]>=1;
 const podeEditar=t=>RANK[nivel(t)]>=2;
 const podeExcluir=t=>RANK[nivel(t)]>=3;
@@ -1690,7 +1747,7 @@ function atribuirTanque(b,destino){
   const sd=SALDOS.find(x=>x.tanque===destino&&dispDe(x)>0);
   if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent=b.tanque?'Trocar de tanque':'Programar no tanque';
   M('mSub').textContent=`${b.produto} · ${nf(b.volume)} L · ${b.tanque?`${b.tanque} → ${destino}`:destino}`;
-  M('mSub').hidden=false;M('modal').classList.remove('wide');
+  M('mSub').hidden=false;M('modal').classList.add('wide');
   M('mB').innerHTML=`
     ${sd?`<div class="alert">O ${destino} ainda tem <b>${nf(dispDe(sd))} L</b> de
       <b>${sd.produto}</b>${sd.interrompidoEm?`, interrompido em ${sd.interrompidoEm}`:''}.
@@ -1802,42 +1859,12 @@ function corpoAba(a){
     <button class="btn pri sm" id="adMotNovo" style="margin-top:12px">+ Novo motivo</button>
 `;
     case 'pessoas': return `
-    <div class="st">Acessos ao sistema</div>
-    <p class="adp">Quem entra no sistema, com e-mail e senha. A conta é criada aqui:
-      o sistema gera a senha, você anota e entrega. Ela fica visível na lista até a pessoa trocar.</p>
-    <div id="acgrid"></div>
-    <div class="st">Permissões por tela</div>
-    ${!ADMIN_ABERTO?`
-      <div class="vazio" style="text-align:left;padding:18px 20px">
-        <div style="font-size:13px;color:var(--ink2);margin-bottom:11px">
-          O cadastro de pessoas é protegido. Digite a senha mestra para abrir.</div>
-        <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
-          <input type="password" id="adPin" class="pin" maxlength="6" inputmode="numeric"
-            placeholder="••••" style="width:150px;border:1px solid var(--line);border-radius:8px;padding:8px">
-          <button class="btn pri" id="adK">Abrir cadastro</button>
-          <span id="adErr" style="color:var(--danger);font-size:12px" hidden>Senha incorreta.</span>
-        </div>
-      </div>`
-    :`
-      <table><thead><tr><th>Pessoa</th><th class="n">PIN</th>
-        ${TELAS.map(t=>`<th>${t[1]}</th>`).join('')}<th></th></tr></thead><tbody>
-        ${USUARIOS.map((u,i)=>`<tr>
-          <td><input type="text" value="${u.nome}" data-un="${i}" style="width:150px">
-            ${u.master?'<span class="stq liberado" style="margin-left:6px">master</span>':''}</td>
-          <td class="n"><input type="text" value="${u.pin}" data-up="${i}" maxlength="6"
-            style="width:78px;text-align:center;font-family:'JetBrains Mono'"></td>
-          ${TELAS.map(t=>`<td><select data-ut="${i}" data-uf="${t[0]}" ${u.master?'disabled':''}>
-            ${NIVEIS.map(n=>`<option value="${n[0]}" ${(u.master?'excluir':u.perm[t[0]]||'')===n[0]?'selected':''}>${n[1]}</option>`).join('')}
-          </select></td>`).join('')}
-          <td class="n">${u.master?'':`<button class="btn del sm" data-ux="${i}">×</button>`}</td>
-        </tr>`).join('')}
-      </tbody></table>
-      <div style="display:flex;gap:9px;margin:-10px 0 20px">
-        <button class="btn sm" id="adNovo">+ Adicionar pessoa</button>
-        <button class="btn sm" id="adFecha">Fechar cadastro</button>
-      </div>`}
-
-    `;
+    <div class="st">Pessoas e acessos</div>
+    <p class="adp">Quem entra no sistema e o que cada um pode fazer em cada tela.
+      A conta é criada aqui: o sistema gera a senha e ela fica visível até ser trocada.
+      Se a pessoa trocar, use <b>Redefinir</b> para gerar outra — ninguém consegue
+      ver uma senha escolhida por outra pessoa, nem o sistema.</p>
+    <div id="acgrid"></div>`;
     case 'dados': return `<div class="st">Cópia de segurança</div>
     <div class="dados">
       <p>Os dados ficam no banco e são salvos sozinhos. Baixar serve para guardar uma cópia
@@ -3464,7 +3491,8 @@ function modalDesvio(b){
 function abrirLote(b){
   if(!b)return;
   const trava=b.status!=='aguardando'?'disabled':'';
-  if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent=`${b.tanque||'Sem tanque'} · ${b.produto}`;
+  if(M('mAcao'))M('mAcao').innerHTML='';  M('modal').classList.add('wide');
+  M('mTit').textContent=`${b.tanque||'Sem tanque'} · ${b.produto}`;
   M('mSub').innerHTML=`${b.lote?`Lote ${b.lote} · `:''}${nf(b.volume)} L ·
     <span class="stq ${b.status}">${LBL_BAT[b.status]}</span>`;
   M('mSub').hidden=false;M('modal').classList.remove('wide');
@@ -3824,6 +3852,7 @@ const SUPA={
   linha:'atrius'
 };
 const SUPA_SESSAO='pcp-atrius-sessao';
+const SENHA_SERVIDOR=false;   /* vira true quando a função de redefinir senha for instalada */
 let SESSAO=null, VERSAO_NUVEM=0, ONLINE=false, tPoll=null;
 const temNuvem=()=>!!(SUPA.url&&SUPA.key);
 
@@ -3968,8 +3997,9 @@ async function lerAcessos(){
   MEU_ACESSO=ACESSOS.find(a=>a.email===meu)||null;
   return ACESSOS;
 }
-async function gravarAcesso(linha,novo){
-  const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso`+(novo?'':`?email=eq.${encodeURIComponent(linha.email)}`),{
+async function gravarAcesso(linha,novo,email){
+  const alvo=email||linha.email;
+  const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso`+(novo?'':`?email=eq.${encodeURIComponent(alvo)}`),{
     method:novo?'POST':'PATCH',
     headers:cabecalhos({'Prefer':'return=representation'}),
     body:JSON.stringify(novo?[linha]:linha)});
@@ -4005,28 +4035,36 @@ async function criarConta(email,senha){
 async function gradeAcessos(){
   const el=M('acgrid');if(!el)return;
   if(!temNuvem()||!SESSAO){
-    el.innerHTML='<div class="vazioc">O cadastro de acessos precisa do banco online.</div>';return;}
+    el.innerHTML='<div class="vazioc">O cadastro de pessoas precisa do banco online.</div>';return;}
   el.innerHTML='<div class="vazioc">carregando…</div>';
   try{ await lerAcessos(); }
   catch(e){ el.innerHTML=`<div class="vazioc">${e.message}</div>`; return; }
   if(!souMaster()){
-    el.innerHTML='<div class="vazioc">Só o master cadastra pessoas.</div>';return;
-  }
+    el.innerHTML='<div class="vazioc">Só o master cadastra pessoas.</div>';return;}
+  const selNivel=(a,tela)=>{
+    const v=a.master?'excluir':((a.perm||{})[tela]||'');
+    return `<select class="np" data-mail="${a.email}" data-tela="${tela}" ${a.master?'disabled':''}>
+      ${NIVEIS.map(([k,r])=>`<option value="${k}" ${v===k?'selected':''}>${r}</option>`).join('')}
+    </select>`;
+  };
   el.innerHTML=`
     <table class="tb"><thead><tr>
-      <th>Nome</th><th>E-mail</th><th>Nível</th><th>Senha inicial</th><th>Situação</th><th></th>
+      <th>Pessoa</th><th>E-mail</th><th>Senha</th>
+      ${TELAS.map(t=>`<th>${t[1]}</th>`).join('')}
+      <th>Situação</th><th></th>
     </tr></thead><tbody>
-    ${ACESSOS.map(a=>`<tr>
-      <td>${a.nome}</td>
+    ${ACESSOS.map(a=>`<tr class="${a.ativo?'':'inat'}">
+      <td><b>${a.nome}</b>${a.master?' <span class="pill ok">master</span>':''}</td>
       <td class="mono">${a.email}</td>
-      <td>${a.master?'<span class="pill ok">master</span>':'operação'}</td>
       <td class="mono">${a.senha_inicial
         ?`<span class="sen">${a.senha_inicial}</span>`
-        :'<span class="k">já trocou</span>'}</td>
+        :'<span class="k">trocada pela pessoa</span>'}</td>
+      ${TELAS.map(t=>`<td>${selNivel(a,t[0])}</td>`).join('')}
       <td>${a.ativo?'ativo':'<span class="k">inativo</span>'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="ordb" data-aced="${a.email}" title="Editar">✎</button>
-        <button class="ordb del" data-acdel="${a.email}" title="Excluir">✕</button>
+        <button class="ordb" data-acsen="${a.email}" title="Redefinir senha">&#128273;</button>
+        <button class="ordb" data-aced="${a.email}" title="Editar">&#9998;</button>
+        <button class="ordb del" data-acdel="${a.email}" title="Excluir">&#10005;</button>
       </td></tr>`).join('')}
     </tbody></table>
     <button class="btn pri sm" id="acNovo" style="margin-top:12px">+ Nova pessoa</button>`;
@@ -4034,6 +4072,50 @@ async function gradeAcessos(){
   el.querySelectorAll('[data-aced]').forEach(b=>b.onclick=()=>
     modalAcesso(ACESSOS.find(a=>a.email===b.dataset.aced)));
   el.querySelectorAll('[data-acdel]').forEach(b=>b.onclick=()=>excluirAcesso(b.dataset.acdel));
+  el.querySelectorAll('[data-acsen]').forEach(b=>b.onclick=()=>redefinirSenha(b.dataset.acsen));
+  /* permissão por tela grava na hora */
+  el.querySelectorAll('select.np').forEach(s=>s.addEventListener('change',async()=>{
+    const a=ACESSOS.find(x=>x.email===s.dataset.mail);if(!a)return;
+    const perm={...(a.perm||{})};
+    if(s.value)perm[s.dataset.tela]=s.value; else delete perm[s.dataset.tela];
+    try{await gravarAcesso({perm:perm},false,a.email);a.perm=perm;
+      toast(`${a.nome}: ${(TELAS.find(t=>t[0]===s.dataset.tela)||[,''])[1]} — ${
+        (NIVEIS.find(n=>n[0]===s.value)||[,'—'])[1]}.`);}
+    catch(e){toast(e.message,true);gradeAcessos();}
+  }));
+}
+
+/* Redefinir senha exige uma chave privilegiada, que nunca pode estar no navegador.
+   Sem a função no servidor, o sistema explica em vez de fingir que consegue. */
+async function redefinirSenha(email){
+  const a=ACESSOS.find(x=>x.email===email);if(!a)return;
+  const nova=gerarSenha();
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('mTit').textContent='Redefinir senha';M('mSub').hidden=false;M('mSub').textContent=a.nome;
+  M('mB').innerHTML=`
+    <div class="alert blue"><b>Nova senha:</b> <span class="sen">${nova}</span><br>
+      Anote antes de confirmar. Ela passa a valer no lugar da anterior.</div>
+    ${SENHA_SERVIDOR?'':`<div class="alert">
+      <b>Ainda não está ligado.</b> Trocar a senha de outra pessoa é uma operação
+      privilegiada e precisa de uma peça no servidor, que ainda não foi instalada.
+      Enquanto isso, a pessoa pode entrar com a senha que consta na lista.</div>`}`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="rsC">Fechar</button>
+    ${SENHA_SERVIDOR?'<button class="btn pri" id="rsK">Confirmar</button>':''}</div>`;
+  M('rsC').onclick=fecharModal;
+  if(M('rsK'))M('rsK').onclick=async()=>{
+    M('rsK').disabled=true;M('rsK').textContent='Trocando…';
+    try{
+      const r=await fetch(`${SUPA.url}/functions/v1/redefinir-senha`,{
+        method:'POST',headers:cabecalhos(),body:JSON.stringify({email:email,senha:nova})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.erro||d.message||'falha ao redefinir');
+      await gravarAcesso({senha_inicial:nova},false,email);
+      fecharModal();await gradeAcessos();
+      toast(`Senha de ${a.nome} redefinida · ${nova}`);
+    }catch(e){M('rsK').disabled=false;M('rsK').textContent='Confirmar';toast(e.message,true);}
+  };
+  M('mask').classList.add('on');
 }
 
 function modalAcesso(a){
@@ -4082,7 +4164,7 @@ function modalAcesso(a){
           :`${nome} cadastrado · senha ${senha}`);
       }else{
         await gravarAcesso({nome:nome,master:M('acNivel').value==='1',
-          ativo:M('acAtivo').value==='1'},false);
+          ativo:M('acAtivo').value==='1'},false,a.email);
         fecharModal();await gradeAcessos();toast('Acesso atualizado.');
       }
     }catch(e){

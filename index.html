@@ -2392,7 +2392,7 @@ function gradeAdmin(){
   /* motivos */
   if(M('adMotNovo'))M('adMotNovo').onclick=()=>modalMotivo(null);
   M('adgrid').querySelectorAll('[data-moted]').forEach(b=>b.onclick=()=>
-    modalMotivo(MOTIVOS.find(x=>x.id===b.dataset.moted)));
+    modalMotivo(MOTIVOS.find(x=>String(x.id)===b.dataset.moted)));
   M('adgrid').querySelectorAll('[data-motdel]').forEach(b=>b.onclick=()=>
     excluirMotivo(b.dataset.motdel));
   if(M('adTol'))M('adTol').addEventListener('change',ev=>{
@@ -3902,9 +3902,9 @@ function gradeOperadores(){
     <button class="btn pri sm" id="opNovo" style="margin-top:12px">+ Novo operador</button>`;
   if(M('opNovo'))M('opNovo').onclick=()=>modalOperador(null);
   el.querySelectorAll('[data-oped]').forEach(b=>b.onclick=()=>
-    modalOperador(OPERADORES.find(o=>o.id===b.dataset.oped)));
+    modalOperador(OPERADORES.find(o=>String(o.id)===b.dataset.oped)));
   el.querySelectorAll('[data-opdel]').forEach(b=>b.onclick=()=>{
-    const o=OPERADORES.find(x=>x.id===b.dataset.opdel);if(!o)return;
+    const o=OPERADORES.find(x=>String(x.id)===b.dataset.opdel);if(!o)return;
     /* o histórico já assinado não muda: só some da lista de quem pode assinar */
     const i=OPERADORES.indexOf(o);OPERADORES.splice(i,1);
     if(OPERADOR&&OPERADOR.id===o.id)OPERADOR=null;
@@ -4073,7 +4073,9 @@ function modalMotivo(m){
 }
 
 function excluirMotivo(id){
-  const m=MOTIVOS.find(x=>x.id===id);if(!m)return;
+  /* o id do cadastro é número e o atributo do botão é texto */
+  const m=MOTIVOS.find(x=>String(x.id)===String(id));if(!m)return;
+  id=m.id;
   /* quantas OPs já apontaram este motivo? apagar não pode reescrever o passado */
   const usos=ORDENS.filter(o=>Object.values(motivosOP(o))
     .some(v=>(v.ids||[]).includes(id))).length;

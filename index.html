@@ -911,6 +911,26 @@ table.cpr td.e{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;co
 .qbr{display:inline-block;font-size:11px;font-weight:600;background:#FDECEE;color:#B02A37;
   border:1px solid #F5C2C7;border-radius:999px;padding:1px 8px;margin-left:6px;
   font-family:'Inter'}
+
+.vaoop{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+  border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:var(--card)}
+.vaoop:hover{border-color:#1D4ED8;background:#F7FAFF}
+.vaoop b{display:block;font-size:13.5px}
+.vaoop span{display:block;font-size:12px;color:var(--ink3);margin-top:3px}
+.vaolista{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
+.vaoit{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+  border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--surface)}
+.vaoit:hover{border-color:#1D4ED8;background:#F7FAFF}
+.vaoit.nao{opacity:.55}
+.vaoit .n{display:block;font-size:13px;font-weight:600}
+.vaoit .d{display:block;font-size:11.5px;color:var(--ink3);margin-top:2px}
+.vaoit .w{display:block;font-size:11px;color:#B45309;margin-top:3px}
+
+.puxarop{display:block;margin-top:7px;font:inherit;font-size:11.5px;font-weight:600;
+  cursor:pointer;border:1px solid var(--run);border-radius:999px;padding:4px 11px;
+  background:#fff;color:var(--run);max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.puxarop:hover{background:var(--run);color:#fff}
 </style>
 </head>
 <body>
@@ -1936,7 +1956,7 @@ function gradeFila(conf){
 
   M('tqgrid').querySelectorAll('[data-gi]').forEach(e=>{
     e.addEventListener('click',()=>{if(FDRAG)return;
-      abrirOrdem(null,{data:e.dataset.gd,maq:e.dataset.gm,inicio:+e.dataset.gi});});
+      vaoModal(e.dataset.gm,e.dataset.gd,+e.dataset.gi);});
     const marca=v=>e.classList.toggle('alvo',v);
     e.addEventListener('dragenter',ev=>{ev.preventDefault();if(FDRAG)marca(true);});
     e.addEventListener('dragover',ev=>{ev.preventDefault();
@@ -4693,28 +4713,108 @@ function extraDoTurno(o,t){
 const extraTotal=o=>turnosDe(o).reduce((s,t)=>s+extraDoTurno(o,t),0);
 
 /* ---------- painel dentro da OP ---------- */
+
+/* =====================================================================
+   O BOTÃO QUE ANDA COM A OP
+   Um botão só, que muda conforme a etapa: iniciar setup, iniciar envase,
+   concluir. Cada toque abre uma janelinha com a hora — que já vem
+   preenchida com o relógio, mas dá para corrigir.
+   ===================================================================== */
+function etapaAtual(o){
+  if(!o||!o.maq)return null;
+  if(sit(o)==='concluida')return null;
+  if(!o.iniReal&&!o.envIni)return o.setup>0?'setup':'envase';
+  if(!o.envIni)return 'envase';
+  if(!o.fimReal)return 'fim';
+  return null;
+}
+const ROTULO_ETAPA={setup:'Iniciar setup',envase:'Iniciar envase',fim:'Concluir envase'};
+
+function marcarEtapa(o,et){
+  if(et==='fim'){concluir(o);return;}
+  const agora=relogio();
+  const ref=et==='setup'?null:(o.iniReal||null);
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent=ROTULO_ETAPA[et];
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} · lote ${o.lote||'—'}`;
+  M('mB').innerHTML=`
+    <div class="alert blue">${et==='setup'
+      ? `Marca o começo da preparação da linha. Previsto: <b>${o.setup} min</b>.`
+      : `Marca o começo do envase${ref?`, depois do setup iniciado às <b>${ref}</b>`:''}.
+         Previsto: <b>${o.envase} min</b>.`}</div>
+    <div class="g2">
+      <div class="fld"><label>Hora <b>*</b></label>
+        <input type="time" id="etHr" step="300" value="${agora}"></div>
+      <div class="fld"><label>Operador</label>
+        <input id="etPin" type="password" inputmode="numeric" maxlength="6"
+          placeholder="PIN" autocomplete="off">
+        <div class="hint" id="etQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px">
+          Opcional — sem PIN, assina quem está logado.</div></div>
+    </div>
+    <div class="calc" id="etCalc"></div>`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="etC">Voltar</button>
+    <button class="btn pri" id="etK">${ROTULO_ETAPA[et]}</button></div>`;
+  const upd=()=>{
+    const hr=cv('etHr');let t='';
+    if(hr){
+      if(et==='envase'&&ref){
+        const d=hm(hr)-hm(ref);
+        t=d>=0?`Setup levou <b>${hmm(d)}</b> · previsto ${o.setup} min.`
+               :`<span class="w">Antes do início do setup (${ref}).</span>`;
+      }else{
+        const dif=hm(hr)-o.inicio;
+        t=dif===0?'Começou na hora programada.'
+          :dif>0?`<span class="w">${hmm(dif)} depois do programado (${hhmm(o.inicio)}).</span>`
+                :`${hmm(-dif)} antes do programado (${hhmm(o.inicio)}).`;
+      }
+    }
+    M('etCalc').innerHTML=t;
+  };
+  M('etHr').addEventListener('input',upd);upd();
+  M('etPin').addEventListener('input',()=>{
+    const op=opPorPin(cv('etPin').trim());
+    M('etQuem').innerHTML=op?`<b>${op.nome}</b>`:'Opcional — sem PIN, assina quem está logado.';});
+  M('etC').onclick=()=>abrirOrdem(o);
+  M('etK').onclick=()=>{
+    const hr=cv('etHr');
+    if(!hr){toast('Informe a hora.',true);return;}
+    if(et==='envase'&&ref&&hm(hr)<hm(ref)){
+      toast('O envase não pode começar antes do setup.',true);return;}
+    const op=opPorPin(cv('etPin').trim());
+    if(et==='setup'){o.iniReal=hr;registrar(o,'Setup iniciado',op,hr);}
+    else{
+      if(!o.iniReal)o.iniReal=hr;      /* sem setup, a OP começa no envase */
+      o.envIni=hr;registrar(o,'Envase iniciado',op,hr);
+    }
+    agendarSalvar();fecharModal();render();
+    toast(`${ROTULO_ETAPA[et]} · ${hr}.`);
+  };
+  abrirMask();
+}
+
 function turnosHTML(o){
   const l=turnosDe(o), prev=caixasPrev(o), feitas=cxFeitas(o), faltam=cxFaltam(o);
   const porTurno=l.length>0;
   const pc=prev?Math.min(100,feitas/prev*100):0;
   return `<div class="sec"><div class="st">Realizado</div>
-    ${porTurno
-      ? `<p class="adp">Vem dos turnos lançados abaixo — não se digita aqui.</p>`
-      : `<p class="adp">Lance aqui quando a OP for de um turno só. Se ela atravessar a
-          troca de turno, use <b>Fim de turno</b> e o realizado sai dos turnos.</p>`}
+    <p class="adp">${porTurno
+      ? 'Vem dos turnos lançados abaixo.'
+      : 'Vai sendo preenchido pelos botões de etapa, no rodapé.'}</p>
     <div class="g3">
       <div class="fld"><label>Início do setup</label>
-        <input type="time" id="fIniR" step="300" value="${o.iniReal||''}" ${porTurno?'disabled':''}>
+        <input type="time" id="fIniR" step="300" value="${o.iniReal||''}" disabled>
         <div class="hint" id="fSetT" style="font-size:11px;color:var(--ink3);margin-top:4px"></div></div>
       <div class="fld"><label>Início do envase</label>
-        <input type="time" id="fEnvI" step="300" value="${o.envIni||''}" ${porTurno?'disabled':''}></div>
+        <input type="time" id="fEnvI" step="300" value="${o.envIni||''}" disabled></div>
       <div class="fld"><label>Fim do envase</label>
-        <input type="time" id="fFimR" step="300" value="${o.fimReal||''}" ${porTurno?'disabled':''}>
+        <input type="time" id="fFimR" step="300" value="${o.fimReal||''}" disabled>
         <div class="hint" id="fEnvT" style="font-size:11px;color:var(--ink3);margin-top:4px"></div></div>
     </div>
-    ${porTurno?'':`<div class="fld" style="max-width:230px"><label>Caixas produzidas</label>
-      <input type="number" id="fCx" min="0" step="1" value="${o.caixas!=null?o.caixas:''}"
-        placeholder="${nf(prev)}"></div>`}
+    ${o.caixas!=null?`<div class="fld" style="max-width:230px"><label>Caixas produzidas</label>
+      <input type="number" id="fCx" value="${o.caixas}" disabled></div>`:''}
   </div>
   <div class="sec"><div class="st">Turnos</div>
     ${l.length?`<table class="tb tturn"><thead><tr>
@@ -4860,6 +4960,49 @@ function aplicarTurnos(o){
 /* ---------- corrigir turno fechado ---------- */
 /* OP concluída não se edita no impulso: pede quem autoriza e por quê */
 /* mover sem arrastar: funciona em tablet e deixa registro */
+/* clicar no espaço livre: ou nasce uma OP nova, ou vem uma que já existe */
+function vaoModal(maq,data,inicio){
+  const cabe=x=>x.inicio!==inicio||x.maq!==maq||x.data!==data;
+  const candidatas=ORDENS.filter(x=>naGrade(x)&&sit(x)==='programada'&&cabe(x))
+    .sort((a,b)=>a.data===b.data?a.inicio-b.inicio:(a.data<b.data?-1:1));
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Espaço livre';
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${maq} · ${dCurto(data)} a partir das ${hhmm(inicio)}`;
+  M('mB').innerHTML=`
+    <button type="button" class="opt vaoop" id="vaNova">
+      <b>Lançar uma OP nova</b>
+      <span>Abre o formulário já com ${maq}, ${dCurto(data)} e ${hhmm(inicio)}.</span>
+    </button>
+    <div class="st" style="margin-top:18px">Ou traga uma que já existe</div>
+    ${candidatas.length?`<div class="vaolista">${candidatas.map(x=>{
+      const p=prodOf(x.codigo)||{};
+      const roda=rodaEm(x.codigo,maq);
+      return `<button type="button" class="vaoit ${roda?'':'nao'}" data-vao="${x.id}">
+        <span class="n">${nomeCurto(x.codigo)}</span>
+        <span class="d">${x.maq||'sem máquina'} · ${dCurto(x.data)} ${hhmm(x.inicio)}
+          · ${nf(x.litros)} L · ${total(x)} min</span>
+        ${roda?'':`<span class="w">não roda na ${maq}</span>`}
+      </button>`;}).join('')}</div>`
+      :'<div class="vazioc">Nenhuma OP programada para trazer.</div>'}`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="vaC">Fechar</button></div>`;
+  M('vaC').onclick=fecharModal;
+  M('vaNova').onclick=()=>abrirOrdem(null,{data:data,maq:maq,inicio:inicio});
+  M('mB').querySelectorAll('[data-vao]').forEach(b=>b.onclick=()=>{
+    const o=ORDENS.find(x=>x.id===b.dataset.vao);if(!o)return;
+    if(!rodaEm(o.codigo,maq)){
+      const l=maqsDe(o.codigo);
+      toast(`${nomeCurto(o.codigo)} roda em ${l.join(' ou ')||'nenhuma máquina cadastrada'}.`,true);
+      return;
+    }
+    moverOC(o,maq,data,inicio);
+    fecharModal();render();
+  });
+  abrirMask();
+}
+
 function moverModal(o){
   if(M('mAcao'))M('mAcao').innerHTML='';
   M('modal').classList.remove('wide');
@@ -5179,8 +5322,10 @@ function abrirOrdem(o,pre){
   /* fim de turno vale desde que a OP esteja na máquina e ainda falte volume */
   if(o&&ed&&['programada','preparacao','producao'].includes(sit(o))&&o.maq&&cxFaltam(o))
     fechas.push(`<button class="btn cyan" id="mTurno">Fim de turno</button>`);
-  if(o&&ed&&['preparacao','producao'].includes(sit(o)))
-    fechas.push(`<button class="btn blue" id="mFim">Concluir envase</button>`);
+  /* um botão só, que anda com a OP: setup → envase → conclusão */
+  const et=o&&ed?etapaAtual(o):null;
+  if(et)fechas.push(`<button class="btn ${et==='fim'?'blue':'cyan'}" id="mEtapa"
+    >${ROTULO_ETAPA[et]}</button>`);
   /* OP concluída abre travada: para mexer, o usuário pede Editar de propósito */
   if(o&&fim&&ed&&!DESTRAVADA)
     acts.push(`<button class="btn sm" id="mEdit">Editar</button>`);
@@ -5223,7 +5368,7 @@ function abrirOrdem(o,pre){
   if(M('mTurno'))M('mTurno').onclick=()=>fecharTurno(o);
   M('mB').querySelectorAll('[data-tned]').forEach(b=>b.onclick=()=>
     corrigirTurno(o,+b.dataset.tned));
-  if(M('mFim'))M('mFim').onclick=()=>concluir(o);
+  if(M('mEtapa'))M('mEtapa').onclick=()=>marcarEtapa(o,etapaAtual(o));
   if(M('mEdit'))M('mEdit').onclick=()=>liberarEdicao(o);
 
   /* lista de produtos filtrável por SKU ou nome */

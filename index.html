@@ -931,6 +931,10 @@ table.cpr td.e{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;co
   background:#fff;color:var(--run);max-width:100%;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap}
 .puxarop:hover{background:var(--run);color:#fff}
+
+.linkb{font:inherit;font-size:12.5px;font-weight:600;color:#1D4ED8;background:none;
+  border:none;border-bottom:1px solid #9DBEF5;padding:0;cursor:pointer;margin-left:4px}
+.linkb:hover{border-bottom-color:#1D4ED8}
 </style>
 </head>
 <body>
@@ -4797,6 +4801,89 @@ function marcarEtapa(o,et){
   abrirMask();
 }
 
+
+/* corrigir horário marcado por engano: pede o motivo e deixa rastro */
+function corrigirHorarios(o){
+  const fim=sit(o)==='concluida';
+  const souMestre=!!(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.master);
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Corrigir horários';
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq||'—'} · lote ${o.lote||'—'}`;
+  M('mB').innerHTML=`
+    <div class="alert">Só para acertar o que foi marcado errado.
+      ${fim?'A OP está concluída, então precisa de <b>autorização de supervisor</b>.':''}
+      A correção fica no histórico.</div>
+    <div class="g3">
+      <div class="fld"><label>Início do setup</label>
+        <input type="time" id="chSet" step="300" value="${o.iniReal||''}"></div>
+      <div class="fld"><label>Início do envase</label>
+        <input type="time" id="chEnv" step="300" value="${o.envIni||''}"></div>
+      <div class="fld"><label>Fim do envase</label>
+        <input type="time" id="chFim" step="300" value="${o.fimReal||''}"></div>
+    </div>
+    <div class="calc" id="chCalc"></div>
+    ${(fim&&!souMestre)?`<div class="fld"><label>PIN do supervisor <b>*</b></label>
+      <div class="secreto">
+        <input id="chPin" type="password" inputmode="numeric" maxlength="6"
+          placeholder="••••" autocomplete="off">
+        <button type="button" class="olho" data-olho="chPin" title="Mostrar">&#128065;</button>
+      </div>
+      <div class="hint" id="chQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div></div>`:''}
+    <div class="fld"><label>Motivo <b>*</b></label>
+      <textarea id="chMot" placeholder="Ex.: marquei 18:19 mas o envase começou 12:20"></textarea></div>`;
+  M('mF').innerHTML=`<div class="mfesq">
+      <button class="btn del sm" id="chLimpa">Apagar os horários</button>
+    </div><div class="mfdir">
+    <button class="btn" id="chC">Voltar</button>
+    <button class="btn pri" id="chK">Salvar correção</button></div>`;
+  const upd=()=>{
+    const s=cv('chSet'),e=cv('chEnv'),f=cv('chFim');
+    let t=[];
+    if(s&&e)t.push(hm(e)>=hm(s)?`Setup levou <b>${hmm(hm(e)-hm(s))}</b> · previsto ${o.setup} min.`
+      :'<span class="w">O envase está antes do setup.</span>');
+    if(e&&f)t.push(hm(f)>=hm(e)?`Envase levou <b>${hmm(hm(f)-hm(e))}</b> · previsto ${o.envase} min.`
+      :'<span class="w">O fim está antes do início do envase.</span>');
+    M('chCalc').innerHTML=t.join('<br>');
+  };
+  ['chSet','chEnv','chFim'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));upd();
+  ligarOlhos();
+  if(M('chPin'))M('chPin').addEventListener('input',()=>{
+    const s=autorizador(cv('chPin').trim());
+    M('chQuem').innerHTML=s?`<b>${s.nome}</b> · ${s.funcao||s.papel}`
+      :(opPorPin(cv('chPin').trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
+  });
+  const liberar=()=>{
+    if(!fim)return {nome:quemAssina()};
+    if(souMestre)return {nome:(MEU_ACESSO.nome||'master')};
+    const s=autorizador(cv('chPin').trim());
+    if(!s){toast('Precisa do PIN de um supervisor.',true);return null;}
+    return s;
+  };
+  const aplicar=(novo,rotulo)=>{
+    const mot=cv('chMot').trim();
+    if(!mot){toast('Escreva o motivo.',true);M('chMot').focus();return;}
+    const quem=liberar();if(!quem)return;
+    const antes=`${o.iniReal||'—'} / ${o.envIni||'—'} / ${o.fimReal||'—'}`;
+    o.iniReal=novo.set;o.envIni=novo.env;o.fimReal=novo.fim;
+    if(!o.fimReal)o.caixas=null;
+    registrar(o,rotulo,null,
+      `${antes} → ${o.iniReal||'—'} / ${o.envIni||'—'} / ${o.fimReal||'—'} · por ${quem.nome} · ${mot}`);
+    agendarSalvar();fecharModal();render();toast('Horários corrigidos.');
+  };
+  M('chC').onclick=()=>abrirOrdem(o);
+  M('chK').onclick=()=>{
+    const s=cv('chSet'),e=cv('chEnv'),f=cv('chFim');
+    if(s&&e&&hm(e)<hm(s)){toast('O envase não pode começar antes do setup.',true);return;}
+    if(e&&f&&hm(f)<hm(e)){toast('O fim não pode ser antes do início do envase.',true);return;}
+    if(f&&!e){toast('Informe o início do envase.',true);return;}
+    aplicar({set:s,env:e,fim:f},'Horários corrigidos');
+  };
+  M('chLimpa').onclick=()=>aplicar({set:'',env:'',fim:''},'Horários apagados');
+  abrirMask();
+}
+
 function turnosHTML(o){
   const l=turnosDe(o), prev=caixasPrev(o), feitas=cxFeitas(o), faltam=cxFaltam(o);
   const porTurno=l.length>0;
@@ -4804,7 +4891,9 @@ function turnosHTML(o){
   return `<div class="sec"><div class="st">Realizado</div>
     <p class="adp">${porTurno
       ? 'Vem dos turnos lançados abaixo.'
-      : 'Vai sendo preenchido pelos botões de etapa, no rodapé.'}</p>
+      : 'Vai sendo preenchido pelos botões de etapa, no rodapé.'}
+      ${(!porTurno&&(o.iniReal||o.envIni||o.fimReal))
+        ? ` <button type="button" class="linkb" id="fCorr">Corrigir horários</button>`:''}</p>
     <div class="g3">
       <div class="fld"><label>Início do setup</label>
         <input type="time" id="fIniR" step="300" value="${o.iniReal||''}" disabled>
@@ -5371,6 +5460,7 @@ function abrirOrdem(o,pre){
   M('mB').querySelectorAll('[data-tned]').forEach(b=>b.onclick=()=>
     corrigirTurno(o,+b.dataset.tned));
   if(M('mEtapa'))M('mEtapa').onclick=()=>marcarEtapa(o,etapaAtual(o));
+  if(M('fCorr'))M('fCorr').onclick=()=>corrigirHorarios(o);
   if(M('mEdit'))M('mEdit').onclick=()=>liberarEdicao(o);
 
   /* lista de produtos filtrável por SKU ou nome */

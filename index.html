@@ -73,6 +73,7 @@ input,select,textarea{font:inherit;color:inherit}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:100px;
   font-size:11.5px;font-weight:600;border:1px solid var(--line);color:var(--ink2)}
 .chip.bad{background:#FBEAE8;border-color:#EFCCC8;color:var(--danger)}
+.chip.off{background:var(--surface);border-color:var(--line);color:var(--ink3)}
 .chip.saldo{background:#F1ECFC;border-color:#CFC0F2;color:#5B21B6;cursor:pointer}
 .chip.saldo:hover{background:#E7DEFA}
 .chip.sop{background:#FEF3E7;border-color:#F0C89A;color:#8A5A08;font-weight:700}
@@ -180,7 +181,20 @@ body.arrastando .vaoslim i{opacity:.4}
 .blk.st-concluida .pr{opacity:.2}
 
 .tqwrap{flex:1;overflow:auto;background:var(--surface);padding:16px}
+/* No tablet a barra some quando não se rola; deixando-a sempre visível, dá para
+   ver de relance que existe dia para o lado. */
+.tqwrap{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.tqwrap::-webkit-scrollbar{height:11px;width:11px}
+.tqwrap::-webkit-scrollbar-track{background:transparent}
+.tqwrap::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px;
+  border:3px solid var(--surface)}
+.tqwrap::-webkit-scrollbar-thumb:hover{background:var(--ink3)}
 .tqgrid{display:flex;gap:12px;min-width:max-content;align-items:flex-start}
+/* Na tela do dia as colunas dividem a largura disponível em vez de ficarem
+   presas a 272 px — com a lateral fora, sobra espaço para os blocos crescerem.
+   min-width segura a legibilidade quando houver muitas máquinas. */
+.tqgrid.dia{min-width:0;width:100%}
+.tqgrid.dia .tqcol{width:auto;flex:1 1 0;min-width:230px}
 .tqcol{width:272px;flex-shrink:0;background:var(--paper);border:1px solid var(--line);border-radius:12px;
   display:flex;flex-direction:column;overflow:hidden}
 .tqh{padding:11px 13px;background:var(--surface);border-bottom:1px solid var(--line);position:relative}
@@ -252,6 +266,12 @@ body.tv .tqh[data-col]::after{display:none}
 body.arrastando .tqcol{border-style:dashed}
 .diacol{flex-shrink:0;width:420px;background:var(--paper);border:1px solid var(--line);
   border-radius:12px;overflow:hidden}
+/* Nos horizontes (3, 5 e 10 dias) as colunas dividem a largura em vez de ficarem
+   presas a 420 px. Com 3 dias elas enchem a tela; com 10, o mínimo de 300 px
+   soma mais que a janela e a rolagem horizontal aparece sozinha — é o flexbox
+   encolhendo até o limite e desistindo, sem precisar decidir por número de dias. */
+.tqgrid.horiz{min-width:0;width:100%}
+.tqgrid.horiz .diacol{width:auto;flex:1 1 0;min-width:300px}
 .diacol.hoje{border-color:#2563EB;box-shadow:0 0 0 1px rgba(37,99,235,.25)}
 .diah{padding:9px 12px;background:var(--surface);border-bottom:1px solid var(--line);
   display:flex;align-items:baseline;gap:8px}
@@ -332,7 +352,7 @@ tr.mot td{background:#FDFAF0;font-size:11px;color:#7A5C0B;padding:6px 12px}
 
 .mask{position:fixed;inset:0;background:rgba(26,29,35,.45);display:none;place-items:center;z-index:60;padding:18px}
 .mask.on{display:grid}
-.modal{background:var(--surface);border-radius:14px;width:100%;max-width:470px;max-height:93vh;
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:680px;max-height:93vh;
   display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.3)}
 .modal.wide{max-width:920px}
 .modal.sacode{animation:sacode .28s}
@@ -582,6 +602,36 @@ body.tv .bat{cursor:default}
 .mot.q{border-left-color:var(--danger)}
 .motc{font-size:13px;color:var(--ink);margin-bottom:8px;display:flex;align-items:baseline;gap:9px}
 .mott{margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap}
+/* dropdown de múltipla escolha: fechado mostra o resumo, aberto lista as
+   opções com caixa de seleção — cabe em qualquer quantidade de motivos,
+   ao contrário das fichas, que estouravam a largura. */
+#cDif[hidden]{display:none!important}
+/* a quebra é o aviso mais grave desta tela: cor própria */
+.alert.q{background:#FBEAE8;border-color:#EFCCC8}
+.mdrop{position:relative}
+.mdrop.aberto .mdsel{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.mdsel{font:inherit;font-size:13px;width:100%;text-align:left;cursor:pointer;
+  padding:9px 30px 9px 11px;border:1px solid var(--line);border-radius:9px;
+  background:var(--paper);color:var(--ink);position:relative}
+.mdsel:hover{border-color:#1D4ED8}
+.mdsel.vazio{color:var(--ink3)}
+.mdsel::after{content:'\25BE';position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  color:var(--ink3);font-size:11px}
+.mdrop.aberto .mdsel{border-color:#1D4ED8}
+/* A lista era absolute e ficava cortada: dentro de um modal que rola, um painel
+   flutuante sempre acaba passando por cima do bloco seguinte ou sendo aparado.
+   Agora ela empurra o conteúdo para baixo — ocupa espaço de verdade, e não há
+   o que cortar. */
+.mdlista{margin-top:5px;max-height:240px;overflow:auto;background:var(--paper);
+  border:1px solid var(--line);border-radius:9px;padding:4px}
+.mdrop:not(.aberto) .mdlista{display:none}
+.mdop{display:flex;gap:9px;align-items:center;padding:7px 9px;border-radius:7px;
+  cursor:pointer;font-size:13px;line-height:1.3}
+.mdop:hover{background:var(--paper)}
+.mdop input{width:15px;height:15px;margin:0;flex-shrink:0;cursor:pointer;accent-color:#1D4ED8}
+.mdop .pri{margin-left:auto;font:inherit;font-size:10.5px;color:var(--ink3);white-space:nowrap;
+  background:transparent;border:0;cursor:pointer;padding:2px 4px;border-radius:5px}
+.mdop .pri:hover{background:#EAF2FE;color:#1D4ED8}
 .motl{display:flex;flex-wrap:wrap;gap:6px}
 .motb{font:inherit;font-size:12.5px;padding:5px 11px;border-radius:999px;cursor:pointer;
   border:1px solid var(--line);background:var(--card);color:var(--ink2)}
@@ -973,10 +1023,9 @@ table.cpr td.e{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;co
   <div class="per" id="per">—</div>
   <button class="btn sm" id="assina" title="Quem está lançando">—</button>
   <div class="sp"></div>
-  <button class="chip saldo" id="saldo" hidden></button>
-  <span class="chip sop" id="chipSop" hidden></span>
+  <button class="chip lib" id="lib"></button>
+  <button class="chip bad" id="chipSld" hidden></button>
   <span class="chip atr" id="chipAtr" hidden></span>
-  <button class="chip lib" id="lib" hidden></button>
   <span class="chip bad" id="conf" hidden></span>
   <span class="usu" id="quem"><b></b></span>
   <span class="chip" id="salvo" title="Os dados ficam salvos neste navegador">—</span>
@@ -1324,7 +1373,8 @@ const MOTIVOS=[
 ];
 const motivosDe=et=>MOTIVOS.filter(m=>m.etapas.includes(et));
 const motivoNome=id=>{const m=MOTIVOS.find(x=>x.id===id);return m?m.nome:id;};
-/* o que a OP registrou: {etapa:{ids:[],principal:'m1'}} */
+/* o que a OP registrou: {etapa:{ids:['m1','m2']}}.
+   OPs antigas ainda trazem um campo 'principal' — é ignorado, não apagado. */
 const motivosOP=o=>o.motivos||{};
 /* campos da OP e retrato do formulário ao abrir, para saber se algo mudou */
 const CAMPOS_OP=['fVol','fTq','fPr','fBusca','fMq','fDt','fHr','fSet','fEnv','fLote',
@@ -1895,7 +1945,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v89';
+const VERSAO_APP='v96';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -1908,7 +1958,11 @@ function render(){
   M('repwrap').hidden=S.page!=='relatorio';
   M('inigrid').hidden=S.page!=='inicio';
   M('adwrap').hidden=S.page!=='admin';
-  M('side').hidden=['relatorio','admin','inicio'].includes(S.page);
+  /* A lateral do envase repetia, em lista, o que os blocos das máquinas já
+     mostram — e roubava 300 px de largura da programação, que é o que
+     interessa na tela do dia. Nos tanques ela é outra coisa: é de lá que se
+     arrastam os lotes ainda sem tanque, então continua. */
+  M('side').hidden=['relatorio','admin','inicio','envase'].includes(S.page);
   if(S.page==='envase'){gradeFila(c);lateralEnvase();}
   else if(S.page==='tanques'){gradeTanques();lateralTanques();}
   else if(S.page==='sopro'){gradeSopro();lateralSopro();}
@@ -1939,16 +1993,21 @@ function topo(conf){
   M('per').textContent=`${f(dias[0])} – ${f(dias[dias.length-1])}`;
   }else M('per').textContent=dLongo(ymd(d));
   const c=M('conf');c.hidden=!conf.size;c.textContent=`${conf.size} sobrepostas`;
-  const sl=ORDENS.filter(x=>x.status==='pendente').length,se=M('saldo');
-  se.hidden=!sl;se.textContent=`${sl} a programar`;
-  const hojeS=ymd(new Date());
-  const sp=sopros(S.page==='envase'?ymd(S.ref):ymd(S.refTq)).filter(x=>!x.liberado).length;
-  const se2=M('chipSop');se2.hidden=!sp;se2.textContent=`${sp} frasco${sp>1?'s':''} pendente${sp>1?'s':''}`;
   const at=ORDENS.filter(atrasada).length,ae=M('chipAtr');
   ae.hidden=!at;ae.textContent=`${at} atrasada${at>1?'s':''}`;
+  /* Liberação nunca some: sem nada pendente ela fica cinza dizendo que está
+     tudo liberado. Chip que some não informa — deixa a dúvida entre "não há
+     nada" e "o sistema não checou". */
   const lb=aguardandoLiberacao(),le=M('lib');
-  le.hidden=!lb.length;
-  le.textContent=`${lb.length} ${lb.length>1?'lotes aguardam':'lote aguarda'} liberação`;
+  le.classList.toggle('off',!lb.length);
+  le.textContent=lb.length
+    ?`${lb.length} ${lb.length>1?'lotes aguardam':'lote aguarda'} liberação`
+    :'tudo liberado';
+  /* Saldo parado prende o tanque: vermelho, e só quando existe */
+  const sld=SALDOS.filter(x=>dispDe(x)>0), sle=M('chipSld');
+  const litrosSld=sld.reduce((s,x)=>s+dispDe(x),0);
+  sle.hidden=!sld.length;
+  sle.textContent=`${sld.length} ${sld.length>1?'tanques':'tanque'} com saldo · ${nf(litrosSld)} L`;
   document.querySelectorAll('#vw button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   const grupo=['envase','tanques'].includes(S.page)?'envase':S.page;
   document.querySelectorAll('#menu .mlista button').forEach(b=>{
@@ -1995,8 +2054,12 @@ function colunaMaq(m,data,conf,estreita){
 function gradeFila(conf){
   if(S.view==='dia'){
     const data=ymd(S.ref);
+    M('tqgrid').classList.add('dia');
+    M('tqgrid').classList.remove('horiz');
     M('tqgrid').innerHTML=MAQUINAS.map(m=>colunaMaq(m,data,conf,false)).join('');
   }else{
+    M('tqgrid').classList.remove('dia');
+    M('tqgrid').classList.add('horiz');
     const dias=diasHorizonte(S.ref,+S.view);
     M('tqgrid').innerHTML=dias.map(d=>{
       const data=ymd(d);
@@ -2135,6 +2198,9 @@ function trocarOC(a,b){
 /* ---------- tanques ---------- */
 let ARR=null,FDRAG=null,SDRAG=null,CDRAG=null,RDRAG=null;
 function gradeTanques(){
+  /* as classes são do envase; os tanques usam a largura fixa e rolam de lado */
+  M('tqgrid').classList.remove('dia');
+  M('tqgrid').classList.remove('horiz');
   const data=ymd(S.refTq),bats=bateladas(data);
   M('tqgrid').innerHTML=TANQUES.map(t=>{
     const seq=bats.filter(b=>b.tanque===t.id).sort((a,b)=>a.prontoAte-b.prontoAte);
@@ -5889,7 +5955,7 @@ function salvar(){
       const lt=loteDaBatelada(prov,true);
       if(lt)f.lote=lt;
     }
-    const antesSit=sit(EDIT),antes=retrato(EDIT);
+    const antes=retrato(EDIT);
     const eraPendente=EDIT.status==='pendente';
     /* mexeu no início de uma OP que já começou: é decisão de gente, não da fila.
        Sem isto o recomporDia devolveria o valor antigo no próximo render e o
@@ -5906,10 +5972,6 @@ function salvar(){
     const alvo=EDIT;
     fecharModal();S.ref=new Date(f.data+'T00:00:00');S.refTq=new Date(f.data+'T00:00:00');
     EDIT=null;render();
-    /* fechou agora e sobrou produto no tanque? oferece a continuação */
-    const sobra=caixasPrev(alvo)-(alvo.caixas??0);
-    if(antesSit!=='concluida'&&sit(alvo)==='concluida'&&sobra>0&&alvo.tanque){
-      continuar(alvo,sobra);return;}
     toast(sit(alvo)==='concluida'?`OP concluída · ${nf(alvo.caixas)} caixas.`
       :(typeof mud!=='undefined'&&!mud?'Nada foi alterado.':'OP salva.'));return;
   }
@@ -5991,54 +6053,8 @@ function seguintes(o){
 /* aplica o desvio: empurra para frente ou puxa para trás, sem invadir o real nem o turno */
 
 /* ---------- o que não coube no turno continua no próximo dia ---------- */
-function continuar(o,sobraCx){
-  const lcx=litrosCx(o),litros=sobraCx*lcx,pr=prodOf(o.codigo);
-  const prox=proximoUtil(addD(new Date(o.data+'T00:00:00'),1),1);
-  const [ji]=jorn(o.maq);
-  if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Sobrou produto no tanque';
-  M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq}`;
-  M('mSub').hidden=false;M('modal').classList.remove('wide');
-  M('mB').innerHTML=`
-    <div class="alert">Faltaram <b>${nf(sobraCx)} caixas</b> — <b>${nf(litros)} L</b> de
-      <b>${pr.tanque}</b> continuam no <b>${o.tanque||'tanque'}</b>.</div>
-    <div class="opt" id="cnA" style="border:1px solid var(--line);border-radius:11px;
-      padding:12px 14px;margin-bottom:11px;cursor:pointer">
-      <b style="font-size:13.5px">Programar a continuação</b>
-      <p style="font-size:12px;color:var(--ink2);line-height:1.55;margin-top:4px">
-        Cria uma OP em <b>${dCurto(ymd(prox))}</b> às <b>${hhmm(ji)}</b>, na ${o.maq},
-        com ${nf(sobraCx)} caixas e <b>sem setup</b> — a máquina não foi lavada.</p></div>
-    <div class="opt" id="cnB" style="border:1px solid var(--line);border-radius:11px;
-      padding:12px 14px;cursor:pointer">
-      <b style="font-size:13.5px">Deixar como saldo no tanque</b>
-      <p style="font-size:12px;color:var(--ink2);line-height:1.55;margin-top:4px">
-        Os ${nf(litros)} L ficam disponíveis no ${o.tanque||'tanque'} para qualquer formato
-        de ${pr.tanque}. Você programa quando decidir.</p></div>`;
-  M('mF').innerHTML=`<div style="flex:1"></div><button class="btn" id="cnX">Depois</button>`;
-  const fecha=()=>{fecharModal();render();};
-  M('cnX').onclick=fecha;
-  M('cnA').onclick=()=>{
-    const n=ordem({tanque:o.tanque,codigo:o.codigo,maq:o.maq,litros,data:ymd(prox),
-      inicio:ji,setup:0,envase:Math.max(15,Math.round(o.envase*sobraCx/caixasPrev(o)/5)*5),
-      lote:o.lote,origem:o.id});
-    registrar(n,'Continuação de OP',null,`Vem de ${dCurto(o.data)} · ${nf(sobraCx)} cx`);
-    registrar(o,'Continuação programada',null,`${nf(sobraCx)} cx em ${dCurto(ymd(prox))}`);
-    S.sel=n.id;S.ref=prox;fecha();
-    toast(`Continuação criada em ${dCurto(ymd(prox))} às ${hhmm(ji)}.`);
-  };
-  M('cnB').onclick=()=>{
-    saldo({tanque:o.tanque,volume:litros,produto:pr.tanque,grupo:pr.grupo,data:o.data,
-      obs:'Sobra ao fechar a OP',interrompidoEm:`${dCurto(o.data)} ${o.fimReal||relogio()}`,origem:o.id});
-    registrar(o,'Saldo devolvido ao tanque',null,`${nf(litros)} L de ${pr.tanque} no ${o.tanque||'tanque'}`);
-    S.page='tanques';S.refTq=new Date(o.data+'T00:00:00');fecha();
-    toast(`${nf(litros)} L ficaram no ${o.tanque||'tanque'}.`);
-  };
-  abrirMask();
-}
-
-/* O botão de passo a passo saiu: os horários são lançados na mão, nos três
-   campos da OP (início do setup, início do envase, fim do envase). */
-
-/* ---------- pedir liberação para iniciar o envase com a anterior aberta ---------- */
+/* continuar() foi removida: produto que ainda vai ser envasado se resolve no
+   Dividir lote, antes de concluir. No fechamento, caixa a menos é quebra. */
 function liberarInicio(o,pend,f){
   const p=prodOf(pend.codigo);
   if(M('mAcao'))M('mAcao').innerHTML='';
@@ -6437,60 +6453,9 @@ function abrirSaldos(){
 }
 
 /* ---------- concluir ---------- */
-let CONFIRMOU_QUEBRA=false;
-
-/* a quebra tem nome e vai para o card e para o histórico */
-function confirmarQuebra(o,cx,prev,feitas){
-  const litros=cx*litrosCx(o);
-  const pc=prev?cx/prev*100:0;
-  const guarda={fim:cv('cFim'),cx:cv('cCx'),obs:cv('cObs')};
-  if(M('mAcao'))M('mAcao').innerHTML='';
-  M('modal').classList.remove('wide');
-  M('mTit').textContent='Confirmar quebra';
-  M('mSub').hidden=false;
-  M('mSub').textContent=`${nomeCurto(o.codigo)} \u00b7 ${o.maq} \u00b7 lote ${o.lote||'\u2014'}`;
-  M('mB').innerHTML=`
-    <div class="alert">O tanque rende <b>${nf(prev)} caixas</b> e voc\u00ea informou
-      <b>${nf(feitas)}</b>.<br><br>
-      Confirma <b>${nf(cx)} caixa${cx>1?'s':''} de quebra</b>
-      (${nf(litros)} L \u00b7 ${nf1(pc)}% do lote)?</div>
-    <p class="adp">A quebra aparece no card da OP e no hist\u00f3rico do produto.
-      Se o n\u00famero estiver errado, volte e corrija as caixas.</p>
-    ${litros>=litrosCx(o)?`<div class="fld"><label>Motivo da quebra <b>*</b></label>
-      <div class="motl" id="qbMot">${motivosDe('quebra').map(m=>
-        `<button type="button" class="motb" data-qm="${m.id}">${m.nome}</button>`).join('')}</div>
-      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin-top:6px">
-        Marque o que aconteceu. O primeiro vira o principal do relat\u00f3rio.</div></div>`:''}`;
-  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
-    <button class="btn" id="qbC">Corrigir as caixas</button>
-    <button class="btn warn" id="qbK">Confirmar a quebra</button></div>`;
-  const sel=new Set();
-  M('mB').querySelectorAll('[data-qm]').forEach(b=>b.onclick=()=>{
-    const id=b.dataset.qm;
-    if(sel.has(id)){sel.delete(id);b.classList.remove('on');}
-    else{sel.add(id);b.classList.add('on');}
-  });
-  M('qbC').onclick=()=>{concluir(o);
-    if(M('cFim'))M('cFim').value=guarda.fim;
-    if(M('cCx'))M('cCx').value=guarda.cx;
-    if(M('cObs'))M('cObs').value=guarda.obs;};
-  M('qbK').onclick=()=>{
-    if(M('qbMot')&&!sel.size){toast('Marque o motivo da quebra.',true);return;}
-    if(sel.size)o.motivos={...(o.motivos||{}),
-      quebra:{ids:[...sel],principal:[...sel][0]}};
-    CONFIRMOU_QUEBRA=true;
-    concluir(o);
-    /* devolve o que estava digitado e conclui, agora com a quebra confirmada */
-    if(M('cFim'))M('cFim').value=guarda.fim;
-    if(M('cCx'))M('cCx').value=guarda.cx;
-    if(M('cObs'))M('cObs').value=guarda.obs;
-    const k=M('cK');
-    if(k&&k.onclick)k.onclick();
-    CONFIRMOU_QUEBRA=false;
-  };
-  abrirMask();
-}
-
+/* confirmarQuebra() foi removida: perguntava o motivo da quebra que a tela de
+   conclusão já pede, e voltava chamando o handler da conclusão de dentro dele
+   mesmo — era essa reentrada que dava erro ao salvar. */
 function concluir(o){
   const prev=caixasPrev(o);
   /* Quando houve turnos, o total nasce da soma que cada operador assinou.
@@ -6523,6 +6488,7 @@ function concluir(o){
             `${dCurto(t.data)} ${nf(t.caixas)}cx ${t.operador||''}`).join(' · ')}.<br>`:''}
         Projetado: ${nf(prev)} caixas · ${nf(o.litros)} L · ${litrosCx(o)} L por caixa.
         A diferença entra como quebra no relatório.</div></div>
+    <div id="cDif" hidden></div>
     ${somaTurnos!=null?`<div class="fld" id="cAjBox" hidden>
       <div class="alert">Este total não bate com a soma dos turnos, que foi assinada
         por cada operador. Para gravar diferente, é preciso o gestor.</div>
@@ -6549,7 +6515,7 @@ function concluir(o){
     let h='';
     if(t!=null)h+=`Tempo de produção <b>${t} min</b> · previsto ${dur} min · `+
       (t>dur?`<span class="w">${t-dur} min acima</span>`:t<dur?`<span style="color:var(--run)">${dur-t} min abaixo</span>`:'no previsto')+`.<br>`;
-    h+= d>0?`Faltaram <b>${nf(d)} caixas</b> — ${nf(d*litrosCx(o))} L (${nf1(d/prev*100)}%).<br>`
+    h+= d>0?`<b>${nf(d)} caixa${d>1?'s':''}</b> a menos — ${nf(d*litrosCx(o))} L (${nf1(d/prev*100)}%).<br>`
       : d<0?`<span style="color:var(--run)">Acima do previsto em <b>${nf(-d)} caixas</b>.</span><br>`
       : `<span style="color:var(--run)">Atendeu o previsto por completo.</span><br>`;
     const delta=f?hm(f)-fimPrev(o):0;
@@ -6561,9 +6527,9 @@ function concluir(o){
     M('cCalc').innerHTML=h;
   };
   /* motivos: só aparecem quando o desvio passa da tolerância */
-  const escolha={};                       /* etapa -> {ids:Set, principal} */
+  const escolha={};                       /* etapa -> {ids:Set} */
   Object.entries(motivosOP(o)).forEach(([et,v])=>
-    escolha[et]={ids:new Set(v.ids||[]),principal:v.principal||null});
+    escolha[et]={ids:new Set(v.ids||[])});
   const desvios=()=>{
     const f=o.fimReal||(M('cFim')?M('cFim').value:'');
     const cx=M('cCx').value===''?null:+M('cCx').value;
@@ -6577,44 +6543,78 @@ function concluir(o){
       /* menos de uma caixa é a sobra que o formato não fecha, não é perda:
          pedir motivo por 4 L em toda OP só ensina a marcar qualquer coisa */
       if(perdidos>=litrosCx(o))
-        l.push({et:'quebra',txt:`Quebra de <b>${nf(perdidos)} L</b> — não fechou o volume do tanque`});
+        l.push({et:'quebra',txt:`Quebra de <b>${nf(perdidos)} L</b> — o produto se perdeu`});
     }
     return l;
   };
   const pintarMotivos=()=>{
     const cx=M('cMot');if(!cx)return;
-    /* Todas as etapas ficam sempre à mão — o operador pode registrar um problema
-       que não virou atraso. Só que ter desvio muda o tom: aí o motivo é cobrado.
-       Quem não teve desvio vê o bloco discreto e escolhe se quer marcar algo. */
-    const comDesvio=desvios();
-    const etapas=['setup','envase','quebra'].filter(et=>et!=='setup'||o.setup>0);
-    const l=etapas.map(et=>{
-      const d=comDesvio.find(x=>x.et===et);
-      return d?{...d,exige:true}:{et:et,txt:'',exige:false};
-    });
-    cx.innerHTML=`<div class="sec"><div class="st">Motivos</div></div>`+l.map(d=>{
-      const e=escolha[d.et]||(escolha[d.et]={ids:new Set(),principal:null});
+    /* Só entra a etapa que estourou: setup que levou menos tempo, envase dentro
+       da meta e lote sem quebra não têm o que explicar. Perguntar assim mesmo
+       enche a tela e faz o operador marcar qualquer coisa para poder salvar. */
+    const l=desvios().map(d=>({...d,exige:true}));
+    if(!l.length){cx.innerHTML='';return;}
+    cx.innerHTML=`<div class="sec"><div class="st">Motivos</div></div>`
+      +`<p class="adp">Só aparece o que saiu do previsto. Use a observação abaixo
+        para o que não couber nos motivos.</p>`+l.map(d=>{
+      const e=escolha[d.et]||(escolha[d.et]={ids:new Set()});
       const opc=motivosDe(d.et);
-      const nome=(ETAPAS.find(x=>x[0]===d.et)||[,d.et])[1];
-      return `<div class="mot ${d.et==='quebra'&&d.exige?'q':''}" ${d.exige?'':'style="opacity:.82"'}>
-        <div class="motc">${d.exige?d.txt:`<b>${nome}</b> dentro do previsto`}
-          <span class="mott">${d.exige?`tolerância ${TOLERANCIA} min · obrigatório`:'opcional'}</span></div>
-        <div class="motl">${opc.map(m=>{
-          const on=e.ids.has(m.id),pr=e.principal===m.id;
-          return `<button type="button" class="motb ${on?'on':''} ${pr?'pr':''}"
-            data-et="${d.et}" data-m="${m.id}">${m.nome}${pr?' ★':''}</button>`;}).join('')}</div>
-        ${e.ids.size>1?`<div class="motp">★ é o motivo principal — é ele que carrega
-          ${d.et==='quebra'?'os litros':'os minutos'} no relatório. Clique de novo para trocar.</div>`:''}
+      return `<div class="mot ${d.et==='quebra'?'q':''}">
+        <div class="motc">${d.txt}
+          <span class="mott">tolerância ${TOLERANCIA} min · obrigatório</span></div>
+        <div class="mdrop" data-dd="${d.et}">
+          <button type="button" class="mdsel ${e.ids.size?'':'vazio'}" data-ddb="${d.et}">${
+            e.ids.size
+              ? [...e.ids].map(i=>motivoNome(i)).join(', ')
+              : 'Selecione os motivos'}</button>
+          <div class="mdlista">${opc.length?opc.map(m=>{
+            const on=e.ids.has(m.id);
+            return `<label class="mdop"><input type="checkbox" data-et="${d.et}" data-m="${m.id}"
+              ${on?'checked':''}><span>${m.nome}</span></label>`;}).join('')
+            :'<div class="mdop" style="color:var(--ink3)">Nada cadastrado para esta etapa</div>'}</div>
+        </div>
+        ${e.ids.size>1?`<div class="motp">Marque todos os que aconteceram — o relatório
+          conta em quantas OPs cada um apareceu.</div>`:''}
       </div>`;}).join('');
     if(!MOTIVOS.length)cx.innerHTML+=`<div class="hint" style="font-size:11.5px;color:var(--ink3)">
       Nenhum motivo cadastrado. Administração &rarr; Motivos.</div>`;
-    cx.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
-      const e=escolha[b.dataset.et],id=b.dataset.m;
-      if(!e.ids.has(id)){e.ids.add(id);if(!e.principal)e.principal=id;}
-      else if(e.principal!==id&&e.ids.size>1)e.principal=id;   /* já marcado: vira principal */
-      else {e.ids.delete(id);if(e.principal===id)e.principal=[...e.ids][0]||null;}
-      pintarMotivos();
+    /* abre um dropdown de cada vez; clicar fora fecha */
+    const fechaTodos=()=>cx.querySelectorAll('.mdrop').forEach(x=>x.classList.remove('aberto'));
+    cx.querySelectorAll('[data-ddb]').forEach(b=>b.onclick=ev=>{
+      ev.stopPropagation();
+      const d=b.closest('.mdrop'),abrindo=!d.classList.contains('aberto');
+      fechaTodos();if(abrindo)d.classList.add('aberto');
     });
+    cx.onclick=ev=>{if(!ev.target.closest('.mdrop'))fechaTodos();};
+    /* marcar e desmarcar mantém o dropdown aberto: dá para escolher vários de uma vez */
+    cx.querySelectorAll('input[data-m]').forEach(b=>b.onchange=()=>{
+      const e=escolha[b.dataset.et],id=b.dataset.m,aberto=b.dataset.et;
+      if(b.checked)e.ids.add(id); else e.ids.delete(id);
+      pintarMotivos();
+      const d=cx.querySelector(`.mdrop[data-dd="${aberto}"]`);if(d)d.classList.add('aberto');
+    });
+
+  };
+  /* Regra da casa: no fechamento, caixa a menos é PERDA. Não se pergunta.
+     Produto que ainda vai ser envasado nunca deveria chegar até aqui — ele se
+     resolve antes, no Dividir lote, que separa a parte que sai agora da que
+     fica no tanque. Oferecer as duas saídas neste ponto convidava a fechar
+     uma OP incompleta e depois desfazer, e enchia a quebra do relatório de
+     produto que não se perdeu. */
+  const pintarDiferenca=()=>{
+    const box=M('cDif');if(!box)return;
+    const cx=M('cCx').value===''?null:+M('cCx').value;
+    const dif=cx==null?0:prev-cx;
+    const litros=dif*litrosCx(o);
+    /* menos de uma caixa é o que o formato não fecha, não é perda de ninguém */
+    if(dif<=0||litros<litrosCx(o)){box.hidden=true;box.innerHTML='';return;}
+    box.hidden=false;
+    box.innerHTML=`
+      <div class="alert q">Fechando com <b>${nf(dif)} caixa${dif>1?'s':''} de quebra</b>
+        — ${nf(litros)} L de ${(prodOf(o.codigo)||{}).tanque||'produto'}
+        ${o.tanque?`no ${o.tanque}`:''}. Informe o motivo abaixo.
+        <br><span style="color:var(--ink2)">Se esse produto não se perdeu e ainda vai ser
+        envasado, volte e use <b>Dividir lote</b> antes de concluir.</span></div>`;
   };
   const conferirAjuste=()=>{
     const box=M('cAjBox');if(!box)return;
@@ -6627,7 +6627,7 @@ function concluir(o){
           ?'<span style="color:var(--danger)">Esta pessoa não é gestor.</span>':'');
     }
   };
-  const atualizar=()=>{upd();pintarMotivos();conferirAjuste();};
+  const atualizar=()=>{upd();pintarDiferenca();pintarMotivos();conferirAjuste();};
   ['cCx','cFim'].forEach(i=>M(i)&&M(i).addEventListener('input',atualizar));
   if(M('cAjPin'))M('cAjPin').addEventListener('input',conferirAjuste);
   ligarOlhos();atualizar();
@@ -6655,20 +6655,13 @@ function concluir(o){
       ajuste=`${nf(somaTurnos)} → ${nf(+cx)} cx · por ${quemAj.nome} · ${motAj}`;
     }
     const obs=M('cObs').value.trim();
-    /* fechar com menos caixas que o tanque rende é quebra: confirma antes,
-       para ninguém descobrir a perda só no relatório do fim do mês */
-    const prevCx=caixasPrev(o), feitasCx=+M('cCx').value||0;
-    const quebraCx=prevCx-feitasCx;
-    if(quebraCx>0&&!CONFIRMOU_QUEBRA){
-      confirmarQuebra(o,quebraCx,prevCx,feitasCx);
-      return;
-    }
-    CONFIRMOU_QUEBRA=false;
-    /* exige motivo onde houve desvio: é o dado que sustenta o relatório */
-    /* o que a confirmação da quebra já resolveu não se pergunta de novo */
+    /* A quebra já é mostrada e cobrada nesta mesma tela, no bloco de motivos.
+       A confirmação em modal separada perguntava de novo a mesma coisa — e,
+       para voltar aqui, reabria a conclusão e chamava este handler de dentro
+       dele mesmo, o que quebrava o salvamento. Um lugar só, sem reentrada. */
     Object.entries(motivosOP(o)).forEach(([et,v])=>{
       if(!escolha[et]&&v&&v.ids&&v.ids.length)
-        escolha[et]={ids:new Set(v.ids),principal:v.principal};
+        escolha[et]={ids:new Set(v.ids)};
     });
     /* obrigatório apenas onde o desvio existe: marcar à toa vira resposta qualquer */
     const pend=desvios().filter(d=>!escolha[d.et]||!escolha[d.et].ids.size);
@@ -6680,8 +6673,8 @@ function concluir(o){
     const descr=[];
     Object.entries(escolha).forEach(([et,e])=>{
       if(!e.ids.size)return;
-      o.motivos[et]={ids:[...e.ids],principal:e.principal};
-      const nomes=[...e.ids].map(i=>motivoNome(i)+(i===e.principal?' ★':''));
+      o.motivos[et]={ids:[...e.ids]};
+      const nomes=[...e.ids].map(i=>motivoNome(i));
       descr.push(`${(ETAPAS.find(x=>x[0]===et)||[,et])[1]}: ${nomes.join(', ')}`);
     });
     if(descr.length)registrar(o,'Motivos informados',null,descr.join(' · '));
@@ -6711,8 +6704,7 @@ function concluir(o){
           op:null,m:faltam===0?`Todo o envase do ${b.tanque||'lote'} terminou`
             :`${nomeCurto(o.codigo)} · faltam ${faltam} OP`}]};
     }
-    const sobra=prev-(+cx);
-    if(sobra>0&&o.tanque){continuar(o,sobra);return;}
+
     fecharModal();render();
     toast(mudou.length
       ? `OP concluída · ${mudou.length} OP${mudou.length>1?'s':''} reajustada${mudou.length>1?'s':''} em ${delta>0?'+':''}${delta} min.`
@@ -7197,46 +7189,79 @@ function abrirLiberacoes(){
 
 /* =====================================================================
    PERDAS POR MOTIVO
-   Litro e minuto não se somam num percentual só, então são duas contas.
-   O peso vai para o motivo PRINCIPAL; os demais ficam registrados.
+   Duas perguntas diferentes, duas contas:
+
+   1. QUANTO se perdeu — litros de quebra e minutos de atraso, por máquina.
+      Não se reparte por motivo: uma OP com dois motivos perdeu os litros uma
+      vez só, e dividir entre eles seria inventar um rateio que ninguém mediu.
+
+   2. COM QUE FREQUÊNCIA cada motivo apareceu — em quantas OPs ele foi marcado,
+      sobre o total de OPs que tiveram aquele tipo de problema. Aqui a OP conta
+      para todos os motivos que marcou, então os percentuais somam mais de 100%.
+      É de propósito: "40% das OPs tiveram vazamento" e "30% tiveram sobra no
+      tanque" são fatos independentes, não fatias de um bolo.
    ===================================================================== */
 function perdasPorMotivo(l){
   const vazio=()=>({total:0,porMaq:{}});
   const litros=vazio(),minutos=vazio();
-  const soma=(acc,maq,id,qt)=>{
+  const soma=(acc,maq,qt)=>{
     acc.total+=qt;
-    const m=acc.porMaq[maq]||(acc.porMaq[maq]={total:0,motivos:{}});
-    m.total+=qt; m.motivos[id]=(m.motivos[id]||0)+qt;
+    const m=acc.porMaq[maq]||(acc.porMaq[maq]={total:0});
+    m.total+=qt;
+  };
+  /* etapa -> {ops: nº de OPs com problema nessa etapa, motivos:{id:nº de OPs}} */
+  const freq={};
+  const conta=(et,ids)=>{
+    const f=freq[et]||(freq[et]={ops:0,motivos:{}});
+    f.ops++;
+    ids.forEach(id=>{f.motivos[id]=(f.motivos[id]||0)+1;});
   };
   l.forEach(o=>{
     const mt=motivosOP(o);
-    if(mt.quebra&&mt.quebra.principal){
-      const q=quebraL(o);
-      if(q&&q>0)soma(litros,o.maq,mt.quebra.principal,q);
+    const q=quebraL(o);
+    if(q&&q>0){
+      soma(litros,o.maq,q);
+      if(mt.quebra&&(mt.quebra.ids||[]).length)conta('quebra',mt.quebra.ids);
     }
     ['setup','envase'].forEach(et=>{
-      if(!mt[et]||!mt[et].principal)return;
       const d=et==='setup'?dvSetup(o):dvEnvase(o);
-      if(d!=null&&d>0)soma(minutos,o.maq,mt[et].principal,d);
+      if(d==null||d<=0)return;
+      soma(minutos,o.maq,d);
+      if(mt[et]&&(mt[et].ids||[]).length)conta(et,mt[et].ids);
     });
   });
-  return {litros,minutos};
+  return {litros,minutos,freq};
 }
 function blocoPerdas(acc,titulo,unidade,cor){
-  if(!acc.total)return `<div class="perdz">Nenhum motivo registrado no período para ${titulo.toLowerCase()}.</div>`;
+  if(!acc.total)return `<div class="perdz">Nada registrado no período para ${titulo.toLowerCase()}.</div>`;
   const un=v=>unidade==='L'?nf(v)+' L':(v>=60?`${Math.floor(v/60)}h${p2(Math.round(v%60))}`:Math.round(v)+' min');
   const maqs=Object.entries(acc.porMaq).sort((a,b)=>b[1].total-a[1].total);
   return `<div class="perdb ${cor}">
     <div class="perdh"><span>${titulo}</span><b>${un(acc.total)}</b></div>
     <div class="perdc">${maqs.map(([maq,d])=>`
-      <div class="perdm">
-        <div class="perdmh"><span>${maq}</span><b>${un(d.total)}</b>
-          <i>${nf1(d.total/acc.total*100)}% do total</i></div>
-        ${Object.entries(d.motivos).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`
-          <div class="perdl"><span>${motivoNome(id)}</span>
-            <div class="perdbar"><i style="width:${v/d.total*100}%"></i></div>
-            <b>${nf1(v/d.total*100)}% · ${un(v)}</b></div>`).join('')}
-      </div>`).join('')}</div></div>`;
+      <div class="perdl"><span>${maq}</span>
+        <div class="perdbar"><i style="width:${d.total/acc.total*100}%"></i></div>
+        <b>${nf1(d.total/acc.total*100)}% · ${un(d.total)}</b></div>`).join('')}</div></div>`;
+}
+
+/* quantas OPs marcaram cada motivo */
+function blocoFrequencia(freq){
+  const etapas=[['quebra','Quebra'],['envase','Atraso no envase'],['setup','Atraso no setup']]
+    .filter(([et])=>freq[et]&&freq[et].ops);
+  if(!etapas.length)return `<div class="perdz">Nenhum motivo informado no período.</div>`;
+  return etapas.map(([et,rot])=>{
+    const f=freq[et];
+    const linhas=Object.entries(f.motivos).sort((a,b)=>b[1]-a[1]);
+    return `<div class="perdb ${et==='quebra'?'vermelho':'laranja'}">
+      <div class="perdh"><span>${rot}</span><b>${f.ops} OP${f.ops>1?'s':''}</b></div>
+      <div class="perdc">${linhas.map(([id,n])=>`
+        <div class="perdl"><span>${motivoNome(id)}</span>
+          <div class="perdbar"><i style="width:${n/f.ops*100}%"></i></div>
+          <b>${nf1(n/f.ops*100)}% · ${n} de ${f.ops}</b></div>`).join('')}
+        <div class="perdz" style="margin:6px 0 0;padding:0;font-size:11px">
+          Uma OP pode ter mais de um motivo, então os percentuais somam mais de 100%.</div>
+      </div></div>`;
+  }).join('');
 }
 
 /* =====================================================================
@@ -7675,8 +7700,11 @@ function relEnvase(){
       <td class="n">${nf(volQuebra)} L</td><td colspan="2"></td></tr></tfoot></table>
     <h3 class="perdt">Por que não batemos a meta</h3>
     ${(()=>{const p=perdasPorMotivo(feitas);
-      return blocoPerdas(p.litros,'Litros perdidos','L','vermelho')
-           + blocoPerdas(p.minutos,'Atraso','min','laranja');})()}`
+      return `<div class="st">Quanto se perdeu</div>`
+           + blocoPerdas(p.litros,'Litros perdidos','L','vermelho')
+           + blocoPerdas(p.minutos,'Atraso','min','laranja')
+           + `<div class="st">Em quantas OPs cada motivo apareceu</div>`
+           + blocoFrequencia(p.freq);})()}`
     :`<div class="vazio">Nenhuma OP neste dia.</div>`}`;
   ligarFiltro();
 }
@@ -8422,7 +8450,8 @@ M('tv').onclick=()=>{
 M('novoSaldo').onclick=lancarSaldo;
 M('arq').onchange=e=>{if(e.target.files[0]){abrirDados(e.target.files[0]);e.target.value='';}};
 M('lib').onclick=abrirLiberacoes;
-M('saldo').onclick=abrirSaldos;
+/* leva direto para onde o saldo está, que é a tela de tanques */
+M('chipSld').onclick=()=>{S.page='tanques';render();};
 M('prev').onclick=()=>{
   if(S.page==='admin')return;
   if(S.page==='envase')S.ref=andarUteis(S.ref,-(S.view==='dia'?1:+S.view));

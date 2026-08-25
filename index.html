@@ -362,6 +362,9 @@ tr.mot td{background:#FDFAF0;font-size:11px;color:#7A5C0B;padding:6px 12px}
 .fld input.fora{border-color:#E2A29C;background:#FDF4F3;color:var(--danger);font-weight:700}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+/* hidden não vence display:grid — sem esta linha o bloco continua na tela
+   mesmo com .hidden=true. Vale para todo elemento grid ou flex que se esconde. */
+#dQuando[hidden]{display:none!important}
 .gsku{display:grid;grid-template-columns:96px 1fr;gap:9px}
 .gsku .sku{font-family:'JetBrains Mono';font-weight:700;text-align:center;letter-spacing:.04em}
 .pin{font-family:'JetBrains Mono';font-size:21px!important;letter-spacing:.35em;text-align:center;font-weight:700}
@@ -539,6 +542,8 @@ body.tv .bat{cursor:default}
 .acth{font-family:'Barlow Condensed';font-size:25px;font-weight:700;text-transform:uppercase;
   letter-spacing:.02em;margin:0 0 3px}
 .actp{font-size:12.5px;color:var(--ink3);line-height:1.5;margin:0 0 16px;max-width:620px}
+.o.sld{border-left:3px solid var(--pausa);cursor:pointer}
+.o.sld:hover{background:#FFFBEB}
 .sen{font-family:'JetBrains Mono';font-weight:700;background:#EAF2FE;color:#1D4ED8;
   padding:2px 7px;border-radius:5px;letter-spacing:.04em}
 .ordb.del:hover:not(:disabled){background:#FDECEE;border-color:var(--danger);color:var(--danger)}
@@ -1674,6 +1679,16 @@ const SALDOS=[];
 function saldo(x){SALDOS.push({id:uid(),...x});return SALDOS[SALDOS.length-1];}
 const consumidoDe=id=>ORDENS.filter(o=>o.saldoId===id&&ativa(o)).reduce((s,o)=>s+o.litros,0);
 const dispDe=sd=>sd.volume-consumidoDe(sd.id);
+/* Tanque com saldo de granel não aceita outro produto: lavar o tanque para
+   trocar de granel jogaria fora o que sobrou. Ele só libera quando o saldo
+   for todo consumido — isto é, quando as OPs que puxam dele fecharem.
+   Mesmo granel entra normalmente: é para isso que o saldo existe. */
+const saldoDoTanque=t=>SALDOS.find(x=>x.tanque===t&&dispDe(x)>0)||null;
+function tanquePreso(tanque,granel){
+  const sd=saldoDoTanque(tanque);
+  if(!sd||!granel)return null;
+  return sd.produto===granel?null:sd;
+}
 
 /* apontamento do lote de tanque, por (data|tanque|lote) */
 const APONTA={};
@@ -1880,7 +1895,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v82';
+const VERSAO_APP='v89';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -4700,7 +4715,30 @@ function lateralEnvase(){
       :`<div class="m">${x.lote?`Lote ${x.lote} · `:''}${x.tanque||'sem tanque'} · ${nf(x.litros)} L</div>`}
     </div>`;}).join('')}</div>`
     :`<div class="empty">Nenhuma OP neste dia.<br>Clique no calendário ou em <b>+ Nova OP</b>.</div>`;
-  M('sB').querySelectorAll('.o').forEach(e=>e.onclick=()=>{
+  /* o bloco de saldo é acrescentado depois, e precisa sobreviver ao vazio acima */
+  /* Saldo parado no tanque não é OP e não tem dia: se ficasse só na tela de
+     tanques, ninguém lembraria dele. Aqui ele aparece todo dia, até virar OP. */
+  const pend=SALDOS.filter(sd=>dispDe(sd)>0)
+    .sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+  if(pend.length){
+    M('sB').insertAdjacentHTML('beforeend',
+      `<div class="sec" style="margin-top:18px"><div class="st">Saldo no tanque</div></div>
+       <p class="adp">Sem formato definido. Clique para escolher a litragem e programar.</p>
+       <div class="olist">${pend.map(sd=>`<div class="o sld" data-sd="${sd.id}">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="n" style="flex:1">${sd.produto}</div>
+          <span class="stq pendente">A programar</span></div>
+        <div class="m"><b>${nf(dispDe(sd))} L</b> no ${sd.tanque}${sd.lote?` · lote ${sd.lote}`:''}</div>
+        <div class="m">${sd.interrompidoEm?`Desde ${sd.interrompidoEm}`:dCurto(sd.data||'')}
+          ${sd.obs?` · ${sd.obs}`:''}</div>
+      </div>`).join('')}</div>`);
+    M('sB').querySelectorAll('.sld').forEach(e=>e.onclick=()=>{
+      const sd=SALDOS.find(x=>x.id===e.dataset.sd);
+      if(sd)abrirOrdem(null,{saldoId:sd.id,tanque:sd.tanque,data:ymd(S.ref),
+        litros:dispDe(sd),prodTanque:sd.produto,lote:sd.lote||''});
+    });
+  }
+  M('sB').querySelectorAll('.o[data-o]').forEach(e=>e.onclick=()=>{
     S.sel=e.dataset.o;abrirOrdem(ORDENS.find(o=>o.id===e.dataset.o));});
 }
 
@@ -4826,24 +4864,37 @@ const extraTotal=o=>turnosDe(o).reduce((s,t)=>s+extraDoTurno(o,t),0);
 function etapaAtual(o){
   if(!o||!o.maq)return null;
   if(sit(o)==='concluida')return null;
+  /* Turno fechado com volume sobrando: a OP virou o dia. O setup já foi feito
+     lá atrás e não se repete — o que falta é retomar de onde parou. */
+  if(!o.iniReal&&!o.envIni&&turnosDe(o).length)return 'retomar';
   if(!o.iniReal&&!o.envIni)return o.setup>0?'setup':'envase';
   if(!o.envIni)return 'envase';
   if(!o.fimReal)return 'fim';
   return null;
 }
-const ROTULO_ETAPA={setup:'Iniciar setup',envase:'Iniciar envase',fim:'Concluir envase'};
+const ROTULO_ETAPA={setup:'Iniciar setup',envase:'Iniciar envase',
+  retomar:'Retomar envase',fim:'Concluir envase'};
 
 function marcarEtapa(o,et){
   if(et==='fim'){concluir(o);return;}
   const agora=relogio();
+  const volta=et==='retomar';
+  /* retomar é um início de envase que não zera nada: o histórico de turnos
+     e as caixas já lançadas continuam valendo */
+  if(volta)et='envase';
   const ref=et==='setup'?null:(o.iniReal||null);
   if(M('mAcao'))M('mAcao').innerHTML='';
   M('modal').classList.remove('wide');
-  M('mTit').textContent=ROTULO_ETAPA[et];
+  M('mTit').textContent=volta?'Retomar envase':ROTULO_ETAPA[et];
   M('mSub').hidden=false;
   M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} · lote ${o.lote||'—'}`;
   M('mB').innerHTML=`
-    <div class="alert blue">${et==='setup'
+    <div class="alert blue">${volta
+      ? `Retoma o envase deste lote. Já foram <b>${nf(cxFeitas(o))} cx</b> em
+         ${turnosDe(o).length} turno${turnosDe(o).length>1?'s':''};
+         faltam <b>${nf(cxFaltam(o))} cx</b> (${nf(litrosFaltam(o))} L no tanque).
+         O setup não se repete.`
+      : et==='setup'
       ? `Marca o começo da preparação da linha. Previsto: <b>${o.setup} min</b>.`
       : `Marca o começo do envase${ref?`, depois do setup iniciado às <b>${ref}</b>`:''}.
          Previsto: <b>${o.envase} min</b>.`}</div>
@@ -4859,7 +4910,7 @@ function marcarEtapa(o,et){
     <div class="calc" id="etCalc"></div>`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
     <button class="btn" id="etC">Voltar</button>
-    <button class="btn pri" id="etK">${ROTULO_ETAPA[et]}</button></div>`;
+    <button class="btn pri" id="etK">${volta?'Retomar envase':ROTULO_ETAPA[et]}</button></div>`;
   const upd=()=>{
     const hr=cv('etHr');let t='';
     if(hr){
@@ -5032,7 +5083,7 @@ function turnosHTML(o){
   const pc=prev?Math.min(100,feitas/prev*100):0;
   return `<div class="sec"><div class="st">Realizado</div>
     <p class="adp">${porTurno
-      ? 'Vem dos turnos lançados abaixo.'
+      ? `Soma de ${l.length} turno${l.length>1?'s':''} — cada um está no histórico.`
       : 'Vai sendo preenchido pelos botões de etapa, no rodapé.'}
       ${(!porTurno&&(o.iniReal||o.envIni||o.fimReal))
         ? ` <button type="button" class="linkb" id="fCorr">Corrigir horários</button>`:''}</p>
@@ -5049,23 +5100,11 @@ function turnosHTML(o){
     ${o.caixas!=null?`<div class="fld" style="max-width:230px"><label>Caixas produzidas</label>
       <input type="number" id="fCx" value="${o.caixas}" disabled></div>`:''}
   </div>
-  <div class="sec"><div class="st">Turnos</div>
-    ${l.length?`<table class="tb tturn"><thead><tr>
-      <th>Dia</th><th>Horário</th><th class="n">Tempo</th><th>Operador</th>
-      <th class="n">Caixas</th><th class="n">Extra</th><th></th>
-    </tr></thead><tbody>
-    ${l.map((t,i)=>{
-      const ex=extraDoTurno(o,t);
-      return `<tr>
-        <td class="mono">${dCurto(t.data)}</td>
-        <td class="mono">${t.ini}–${t.fim}</td>
-        <td class="n mono">${hmm(Math.max(0,hm(t.fim)-hm(t.ini)))}</td>
-        <td>${t.operador||'—'}</td>
-        <td class="n mono"><b>${nf(t.caixas||0)}</b></td>
-        <td class="n mono">${ex?`<span class="pill med">${hmm(ex)}</span>`:'—'}</td>
-        <td class="n"><button class="ordb" data-tned="${i}" title="Corrigir — precisa de autorização">&#9998;</button></td>
-      </tr>`;}).join('')}
-    </tbody></table>`:'<div class="vazioc" style="padding:14px">Nenhum turno lançado.</div>'}
+  <div class="sec">
+    ${'' /* A tabela de turnos saiu: cada turno já vira linha no histórico, com
+           dia, horário, operador e caixas. Duas listas da mesma coisa só criam
+           dúvida sobre qual é a verdadeira. O que fica é o saldo, que o
+           histórico não mostra somado. */}
     <div class="tsaldo ${faltam?'':'ok'}">
       <div class="tsb"><i style="width:${pc}%"></i></div>
       <div class="tst">
@@ -5548,21 +5587,20 @@ function abrirOrdem(o,pre){
   const acts=[];
   const ed=podeEditar('envase'),xc=podeExcluir('envase');
   if(fim&&ed)acts.push(`<button class="btn warn sm" id="mReab">Reabrir OP</button>`);
-  if(o&&o.status!=='cancelada'&&ed)acts.push(`<button class="btn sm" id="mRep">Repetir em seguida</button>`);
-  /* dividir e interromper valem enquanto a OP não fechou o envase:
-     dividir troca o formato puxando do mesmo tanque; interromper devolve litros ao tanque */
   if(o)acts.push(`<button class="btn sm" id="mOP">Imprimir OP</button>`);
-  if(o&&ed&&['programada','preparacao'].includes(sit(o)))
-    acts.push(`<button class="btn sm" id="mMov">Mover</button>`);
-  if(o&&ed&&sit(o)==='programada')acts.push(`<button class="btn sm" id="mMv">Mover</button>`);
-  if(o&&ed&&['programada','preparacao','producao'].includes(sit(o))){
+  /* Dividir lote: mesmo lote do tanque, litragens diferentes do mesmo produto.
+     Repetir, Mover e Interromper saíram a pedido — Mover aparecia duas vezes,
+     com dois ids e a mesma palavra, o que ninguém conseguia distinguir. */
+  /* 'finalizado' é a OP com fim marcado e caixas ainda não informadas — e é
+     também onde caem as OPs reabertas por versões anteriores. Enquanto ela não
+     fechou de verdade, tudo o que vale para uma OP ativa vale para ela. */
+  const VIVA=['programada','preparacao','producao','finalizado'];
+  if(o&&ed&&VIVA.includes(sit(o)))
     acts.push(`<button class="btn sm" id="mDiv">Dividir lote</button>`);
-    acts.push(`<button class="btn warn sm" id="mInt">Interromper</button>`);
-  }
   /* fecha o ciclo: é aqui que as caixas produzidas entram no sistema */
   const fechas=[];
   /* fim de turno vale desde que a OP esteja na máquina e ainda falte volume */
-  if(o&&ed&&['programada','preparacao','producao'].includes(sit(o))&&o.maq&&cxFaltam(o))
+  if(o&&ed&&VIVA.includes(sit(o))&&o.maq&&cxFaltam(o))
     fechas.push(`<button class="btn cyan" id="mTurno">Fim de turno</button>`);
   /* um botão só, que anda com a OP: setup → envase → conclusão */
   const et=o&&ed?etapaAtual(o):null;
@@ -5571,8 +5609,11 @@ function abrirOrdem(o,pre){
   /* OP concluída abre travada: para mexer, o usuário pede Editar de propósito */
   if(o&&fim&&ed&&!DESTRAVADA)
     acts.push(`<button class="btn sm" id="mEdit">Editar</button>`);
-  if(o&&ed&&sit(o)==='finalizado')
+  if(o&&ed&&sit(o)==='finalizado'){
     fechas.push(`<button class="btn blue" id="mFim">Concluir envase</button>`);
+    /* desmarcar o fim devolve a OP para produção sem passar por concluir */
+    acts.push(`<button class="btn warn sm" id="mVolta">Voltar a produzir</button>`);
+  }
 
   /* excluir fica sozinho no alto, longe dos botões que se usa todo dia */
   M('mAcao').innerHTML=(o&&!fim&&xc)?`<button class="btn del sm" id="mDel">Excluir</button>`:'';
@@ -5594,13 +5635,9 @@ function abrirOrdem(o,pre){
   /* Salvar está sempre disponível. O que evita lixo no histórico é o mudancas():
      salvar sem mexer em nada não gera linha nenhuma. */
 
-  if(M('mRep'))M('mRep').onclick=()=>repetir(o);
   if(M('mDiv'))M('mDiv').onclick=()=>dividir(o);
-  if(M('mInt'))M('mInt').onclick=()=>interromper(o);
   if(M('mDel'))M('mDel').onclick=()=>excluir(o);
-  if(M('mMv'))M('mMv').onclick=()=>moverModal(o);
   if(M('mOP'))M('mOP').onclick=()=>imprimirOPEnvase(o);
-  if(M('mMov'))M('mMov').onclick=()=>moverModal(o);
   M('mB').querySelectorAll('[data-oab]').forEach(x=>x.onclick=()=>{
     /* no lançamento, guarda o digitado antes de redesenhar — na aba Embalagem
        o formulário não existe, então ler() ali devolveria vazio */
@@ -5608,12 +5645,13 @@ function abrirOrdem(o,pre){
     ABA_OP=x.dataset.oab;
     o?abrirOrdem(o):abrirOrdem(null,RASCUNHO);});
   if(M('mTurno'))M('mTurno').onclick=()=>fecharTurno(o);
-  M('mB').querySelectorAll('[data-tned]').forEach(b=>b.onclick=()=>
-    corrigirTurno(o,+b.dataset.tned));
+  /* a tabela de turnos saiu do formulário; a correção de um turno passou a ser
+     feita pelo histórico, que é onde eles aparecem */
   if(M('mEtapa'))M('mEtapa').onclick=()=>marcarEtapa(o,etapaAtual(o));
   /* este botão era desenhado e nunca ligado a nada: clicar não fazia coisa
      alguma, sem erro na tela. É o mesmo caso do cadastro de pessoas. */
   if(M('mFim'))M('mFim').onclick=()=>concluir(o);
+  if(M('mVolta'))M('mVolta').onclick=()=>voltarAProduzir(o);
   /* mesmo caso: a função reabrir() existe inteira e o botão nunca a chamava.
      Concluir uma OP por engano era, na prática, definitivo. */
   if(M('mReab'))M('mReab').onclick=()=>reabrir(o);
@@ -5677,9 +5715,17 @@ function abrirOrdem(o,pre){
     let txt,cor='var(--ink3)';
     if(!t)txt='Sem tanque, o lote fica pendente de programação. Você precisará selecionar um tanque.';
     else if(v>t.cap){txt=`O ${t.id} comporta ${nf(t.cap)} L e o lote tem ${nf(v)} L.`;cor='var(--danger)';}
-    else if(sd){txt=`O ${t.id} ainda tem ${nf(dispDe(sd))} L de ${sd.produto}`
-      +`${sd.interrompidoEm?`, interrompido em ${sd.interrompidoEm}`:''}. `
-      +`Esta OP entra como batelada seguinte.`;cor='var(--pausa)';}
+    else if(sd){
+      const gr=(prodOf(M('fPr').value||cv('fBusca'))||{}).tanque;
+      if(gr&&sd.produto!==gr){
+        txt=`O ${t.id} está preso a ${sd.produto}: ${nf(dispDe(sd))} L aguardando formato. `
+           +`Não dá para pôr ${gr} nele antes de envasar esse saldo.`;cor='var(--danger)';
+      }else{
+        txt=`O ${t.id} ainda tem ${nf(dispDe(sd))} L de ${sd.produto}`
+          +`${sd.interrompidoEm?`, interrompido em ${sd.interrompidoEm}`:''}. `
+          +`Esta OP entra como batelada seguinte.`;cor='var(--pausa)';
+      }
+    }
     else txt=`${t.id} · ${nf(t.cap)} L de capacidade.`;
     M('fTqHint').textContent=txt;M('fTqHint').style.color=cor;
   };
@@ -5805,6 +5851,16 @@ function salvar(){
   }
   if(!f.saldoId&&f.tanque&&f.litros>tqOf(f.tanque).cap){
     toast(`Esta OP tem ${nf(f.litros)} L e o ${f.tanque} comporta ${nf(tqOf(f.tanque).cap)} L.`,true);return;}
+  /* granel diferente do que está parado no tanque: não entra */
+  if(!f.saldoId&&f.tanque&&f.codigo){
+    const gr=(prodOf(f.codigo)||{}).tanque;
+    const preso=tanquePreso(f.tanque,gr);
+    if(preso){
+      toast(`O ${f.tanque} tem ${nf(dispDe(preso))} L de ${preso.produto} aguardando formato. `
+           +`Envase esse saldo antes de pôr ${gr} nele.`,true);
+      return;
+    }
+  }
   if(f.maq&&f.inicio!=null){
     const [ji,jf]=jorn(f.maq);
     if(f.inicio<ji){toast(`A ${f.maq} começa às ${hhmm(ji)}.`,true);return;}
@@ -6094,14 +6150,46 @@ function finalizarEnvase(o){
   abrirMask();
 }
 
+/* ---------- tirar a OP de 'finalizado' e devolver à produção ---------- */
+function voltarAProduzir(o){
+  if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Voltar a produzir';
+  M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} · fim marcado ${o.fimReal||'—'}`;
+  M('mSub').hidden=false;M('modal').classList.remove('wide');
+  M('mB').innerHTML=`
+    <div class="alert">O fim do envase <b>${o.fimReal||'—'}</b> é desmarcado e a OP
+      volta para produção. Dividir lote e fim de turno voltam a ficar disponíveis.
+      O início do setup e do envase não mudam, e a hora volta sugerida quando
+      você concluir.</div>
+    <div class="fld"><label>Motivo <b>*</b></label>
+      <textarea id="vpObs" placeholder="Ex.: fim marcado por engano, ainda falta envasar"></textarea></div>`;
+  M('mF').innerHTML=`<div style="flex:1"></div>
+    <button class="btn" id="vpC">Voltar</button>
+    <button class="btn warn" id="vpK">Voltar a produzir</button>`;
+  M('vpC').onclick=()=>abrirOrdem(o);
+  M('vpK').onclick=()=>{
+    const mot=cv('vpObs').trim();
+    if(!mot){toast('Escreva o motivo.',true);M('vpObs').focus();return;}
+    const fimAntes=o.fimReal;
+    if(o.fimReal){o.fimAnterior=o.fimReal;o.fimReal='';}
+    o.caixas=null;
+    registrar(o,'Voltou a produzir',null,`fim ${fimAntes||'—'} desmarcado · ${mot}`);
+    agendarSalvar();fecharModal();render();
+    toast('OP de volta em produção.');
+  };
+  abrirMask();
+}
+
 /* ---------- reabrir OP concluída ---------- */
 function reabrir(o){
   if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Reabrir OP';
   M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} · concluída ${o.fimReal||''}`;
   M('mSub').hidden=false;M('modal').classList.remove('wide');
   M('mB').innerHTML=`
-    <div class="alert">A OP volta para <b>programada</b> e pode ser editada de novo.
-      O realizado e as caixas ficam preenchidos como estão — corrija o que for preciso.
+    <div class="alert">A OP <b>volta para produção</b>, como se não tivesse sido
+      encerrada: dividir lote, fim de turno e concluir voltam a ficar disponíveis.
+      O início do setup e do envase ficam como estão.
+      ${o.fimReal?`O fim <b>${o.fimReal}</b> é desmarcado e volta sugerido na conclusão.`:''}
+      ${o.caixas!=null?`As <b>${nf(o.caixas)} cx</b> lançadas voltam a ser pedidas.`:''}
       ${batDe(o)&&batDe(o).concluidoEm?'O lote do tanque também volta a ficar aberto.':''}</div>
     <div class="fld"><label>Motivo da reabertura <b>*</b></label>
       <textarea id="rObs" placeholder="Ex.: concluída por engano, quantidade errada"></textarea></div>`;
@@ -6113,14 +6201,29 @@ function reabrir(o){
     const motivo=M('rObs').value.trim();
     if(!motivo){toast('Escreva o motivo da reabertura.',true);M('rObs').focus();return;}
     const b=batDe(o);
+    /* O sit() é derivado, não é o campo status: são o fimReal e as caixas que
+       fecham a conta. Tirar só as caixas deixava a OP em 'finalizado', um estado
+       que só oferece Concluir — sem dividir, sem fim de turno, sem nada. Reabrir
+       precisa devolver a OP ao ponto em que ela estava: em produção.
+       A hora que o operador marcou não se perde: fica guardada e volta sugerida
+       na conclusão, além de estar no histórico. */
+    const cxAntes=o.caixas, fimAntes=o.fimReal;
     o.status='programada';
-    registrar(o,'OP reaberta',null,motivo);
+    o.caixas=null;
+    if(o.fimReal){o.fimAnterior=o.fimReal;o.fimReal='';}
+    registrar(o,'OP reaberta',null,
+      `${motivo}${fimAntes?` · fim ${fimAntes} desmarcado`:''}`
+      +`${cxAntes!=null?` · ${nf(cxAntes)} cx a reconfirmar`:''}`);
     if(b&&APONTA[b.chave]&&APONTA[b.chave].concluidoEm){
       const a=APONTA[b.chave];
       APONTA[b.chave]={...a,concluidoEm:'',
         log:[...(a.log||[]),{t:relogio(),e:'Lote reaberto',op:null,m:motivo}]};
     }
-    fecharModal();render();toast('OP reaberta.');
+    /* o render() já agenda a gravação no fim; explícito aqui porque a ordem
+       importa: grava o que acabou de mudar, não o que a tela redesenhar. */
+    agendarSalvar();
+    fecharModal();render();
+    toast(`OP reaberta — confira o realizado e conclua de novo.`);
   };
   abrirMask();
 }
@@ -6153,8 +6256,10 @@ function dividir(o){
         A OP tem ${nf(prev)} caixas de ${fmtLit(pr.litragem)} · ${nf(o.litros)} L.</div></div>
     <div class="fld"><label>O restante sai em <b>*</b></label>
       <select id="dPr">${irmaos.map(x=>`<option value="${x.codigo}" ${x.codigo===o.codigo?'selected':''}>
-        ${x.codigo} · ${x.descricao}</option>`).join('')}</select></div>
-    <div class="g3">
+        ${x.codigo} · ${x.descricao}</option>`).join('')}
+        <option value="__saldo">Deixar saldo do lote no tanque e escolher depois</option>
+      </select></div>
+    <div class="g3" id="dQuando">
       <div class="fld"><label>Máquina</label>
         <select id="dMq">${MAQUINAS.map(m=>`<option ${o.maq===m?'selected':''}>${m}</option>`).join('')}</select></div>
       <div class="fld"><label>Data</label>
@@ -6167,11 +6272,24 @@ function dividir(o){
       <textarea id="dObs" placeholder="Ex.: faltou frasco de 3L"></textarea></div>`;
   M('mF').innerHTML=`<div style="flex:1"></div>
     <button class="btn" id="dC">Voltar</button>
-    <button class="btn pri" id="dK">Criar a OP do outro formato</button>`;
+    <button class="btn pri" id="dK">Dividir</button>`;
   M('dC').onclick=()=>abrirOrdem(o);
   const upd=()=>{
     const fica=+M('dCx').value||0;
     const litrosFica=fica*lcx,litrosResto=o.litros-litrosFica;
+    const ficaNoTanque=M('dPr').value==='__saldo';
+    /* sem formato escolhido não há máquina nem horário para perguntar */
+    if(M('dQuando'))M('dQuando').hidden=ficaNoTanque;
+    if(ficaNoTanque){
+      M('dCalc').innerHTML= fica<=0||fica>=prev
+        ? `<span class="w">Informe entre 1 e ${nf(prev-1)} caixas.</span>`
+        : `Fica: <b>${nf(fica)} cx</b> de ${fmtLit(pr.litragem)} · ${nf(litrosFica)} L.<br>
+           Sobra: <b>${nf(litrosResto)} L</b> de ${pr.tanque} no ${o.tanque||'tanque'},
+           sem formato definido.<br>
+           <b>O ${o.tanque||'tanque'} fica preso a ${pr.tanque}</b> até esse saldo virar OP
+           e ser concluído — nenhum outro produto entra nele.`;
+      return;
+    }
     const novoP=prodOf(M('dPr').value);
     const lcx2=novoP?novoP.un_cx*novoP.litragem:lcx;
     const cxResto=Math.floor(litrosResto/lcx2);
@@ -6190,8 +6308,24 @@ function dividir(o){
     const obs=M('dObs').value.trim();
     if(!obs){toast('Escreva o motivo da divisão.',true);M('dObs').focus();return;}
 
+    const litrosFica0=fica*lcx,litrosResto0=o.litros-litrosFica0;
+    /* Saldo sem formato: a OP encolhe e os litros ficam no tanque como granel.
+       Não vira OP agora — vira quando alguém escolher o formato. */
+    if(M('dPr').value==='__saldo'){
+      if(!o.tanque){toast('Sem tanque não há onde deixar o saldo.',true);return;}
+      o.litros=litrosFica0;
+      o.envase=Math.max(15,Math.round(o.envase*litrosFica0/(litrosFica0+litrosResto0)/5)*5);
+      const sd=saldo({tanque:o.tanque,volume:litrosResto0,produto:pr.tanque,grupo:pr.grupo,
+        data:o.data,obs:obs,origem:o.id,lote:o.lote,
+        interrompidoEm:`${dCurto(o.data)} ${relogio()}`});
+      registrar(o,'OP dividida com saldo no tanque',null,
+        `${nf(fica)} cx aqui · ${nf(litrosResto0)} L de ${pr.tanque} ficam no ${o.tanque} · ${obs}`);
+      fecharModal();S.page='tanques';S.refTq=new Date(o.data+'T00:00:00');render();
+      toast(`${nf(litrosResto0)} L de ${pr.tanque} ficaram no ${o.tanque} — escolha o formato depois.`);
+      return;
+    }
     const novoP=prodOf(M('dPr').value);
-    const litrosFica=fica*lcx,litrosResto=o.litros-litrosFica;
+    const litrosFica=litrosFica0,litrosResto=litrosResto0;
     const mesmoFormato=novoP.codigo===o.codigo;
     const cxResto=Math.floor(litrosResto/(novoP.un_cx*novoP.litragem));
     const envResto=Math.max(15,Math.round(o.envase*litrosResto/o.litros/5)*5);
@@ -6359,6 +6493,11 @@ function confirmarQuebra(o,cx,prev,feitas){
 
 function concluir(o){
   const prev=caixasPrev(o);
+  /* Quando houve turnos, o total nasce da soma que cada operador assinou.
+     O gestor pode mudar, mas isso deixa de ser digitação e vira decisão:
+     pede senha e motivo, e fica no histórico. */
+  const nTurnos=turnosDe(o).length;
+  const somaTurnos=nTurnos?cxFeitas(o):null;
   if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Concluir envase';
   M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} ${o.lote?` · lote ${o.lote}`:''}`;
   M('mSub').hidden=false;M('modal').classList.remove('wide');
@@ -6371,14 +6510,30 @@ function concluir(o){
     </div>
 
     ${!o.fimReal?`<div class="fld"><label>Fim do envase <b>*</b></label>
-      <input type="time" id="cFim" step="300" value="${relogio()}">
+      <input type="time" id="cFim" step="300" value="${o.fimAnterior||relogio()}">
       <div class="hint" style="font-size:11px;color:var(--ink3);margin-top:4px">
+        ${o.fimAnterior?`Antes da reabertura era <b>${o.fimAnterior}</b>. `:''}
         Envase começou às ${iniEnvase(o)||'--:--'} · previsto terminar ${hhmm(fimPrev(o))}.</div></div>`:''}
-    <div class="fld"><label>Caixas produzidas <b>*</b></label>
-      <input type="number" id="cCx" min="0" step="1" value="${o.caixas!=null?o.caixas:prev}">
+    <div class="fld"><label>Caixas produzidas no total <b>*</b></label>
+      <input type="number" id="cCx" min="0" step="1"
+        value="${somaTurnos!=null?somaTurnos:(o.caixas!=null?o.caixas:prev)}">
       <div class="hint" style="font-size:11px;color:var(--ink3);margin-top:4px">
+        ${somaTurnos!=null?`Soma de ${nTurnos} turno${nTurnos>1?'s':''}:
+          <b>${nf(somaTurnos)} cx</b> — ${turnosDe(o).map(t=>
+            `${dCurto(t.data)} ${nf(t.caixas)}cx ${t.operador||''}`).join(' · ')}.<br>`:''}
         Projetado: ${nf(prev)} caixas · ${nf(o.litros)} L · ${litrosCx(o)} L por caixa.
         A diferença entra como quebra no relatório.</div></div>
+    ${somaTurnos!=null?`<div class="fld" id="cAjBox" hidden>
+      <div class="alert">Este total não bate com a soma dos turnos, que foi assinada
+        por cada operador. Para gravar diferente, é preciso o gestor.</div>
+      <label>PIN ou senha do gestor <b>*</b></label>
+      <div class="secreto">
+        <input id="cAjPin" type="password" autocomplete="off" placeholder="PIN ou senha">
+        <button type="button" class="olho" data-olho="cAjPin" title="Mostrar">&#128065;</button>
+      </div>
+      <div class="hint" id="cAjQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div>
+      <label style="margin-top:9px">Por que o total é diferente <b>*</b></label>
+      <input type="text" id="cAjMot" placeholder="Ex.: turno lançado a menos, recontagem"></div>`:''}
     <div class="calc" id="cCalc"></div>
     <div class="fld"><label>Observação</label>
       <textarea id="cObs" placeholder="O que precisa ficar registrado"></textarea></div>`;
@@ -6428,13 +6583,22 @@ function concluir(o){
   };
   const pintarMotivos=()=>{
     const cx=M('cMot');if(!cx)return;
-    const l=desvios();
-    if(!l.length){cx.innerHTML='';return;}
-    cx.innerHTML=l.map(d=>{
+    /* Todas as etapas ficam sempre à mão — o operador pode registrar um problema
+       que não virou atraso. Só que ter desvio muda o tom: aí o motivo é cobrado.
+       Quem não teve desvio vê o bloco discreto e escolhe se quer marcar algo. */
+    const comDesvio=desvios();
+    const etapas=['setup','envase','quebra'].filter(et=>et!=='setup'||o.setup>0);
+    const l=etapas.map(et=>{
+      const d=comDesvio.find(x=>x.et===et);
+      return d?{...d,exige:true}:{et:et,txt:'',exige:false};
+    });
+    cx.innerHTML=`<div class="sec"><div class="st">Motivos</div></div>`+l.map(d=>{
       const e=escolha[d.et]||(escolha[d.et]={ids:new Set(),principal:null});
       const opc=motivosDe(d.et);
-      return `<div class="mot ${d.et==='quebra'?'q':''}">
-        <div class="motc">${d.txt}<span class="mott">tolerância ${TOLERANCIA} min</span></div>
+      const nome=(ETAPAS.find(x=>x[0]===d.et)||[,d.et])[1];
+      return `<div class="mot ${d.et==='quebra'&&d.exige?'q':''}" ${d.exige?'':'style="opacity:.82"'}>
+        <div class="motc">${d.exige?d.txt:`<b>${nome}</b> dentro do previsto`}
+          <span class="mott">${d.exige?`tolerância ${TOLERANCIA} min · obrigatório`:'opcional'}</span></div>
         <div class="motl">${opc.map(m=>{
           const on=e.ids.has(m.id),pr=e.principal===m.id;
           return `<button type="button" class="motb ${on?'on':''} ${pr?'pr':''}"
@@ -6442,6 +6606,8 @@ function concluir(o){
         ${e.ids.size>1?`<div class="motp">★ é o motivo principal — é ele que carrega
           ${d.et==='quebra'?'os litros':'os minutos'} no relatório. Clique de novo para trocar.</div>`:''}
       </div>`;}).join('');
+    if(!MOTIVOS.length)cx.innerHTML+=`<div class="hint" style="font-size:11.5px;color:var(--ink3)">
+      Nenhum motivo cadastrado. Administração &rarr; Motivos.</div>`;
     cx.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
       const e=escolha[b.dataset.et],id=b.dataset.m;
       if(!e.ids.has(id)){e.ids.add(id);if(!e.principal)e.principal=id;}
@@ -6450,8 +6616,21 @@ function concluir(o){
       pintarMotivos();
     });
   };
-  const atualizar=()=>{upd();pintarMotivos();};
-  ['cCx','cFim'].forEach(i=>M(i)&&M(i).addEventListener('input',atualizar));atualizar();
+  const conferirAjuste=()=>{
+    const box=M('cAjBox');if(!box)return;
+    const dif=(+M('cCx').value||0)!==somaTurnos;
+    box.hidden=!dif;
+    if(dif&&M('cAjPin')){
+      const s=autorizador(cv('cAjPin').trim());
+      M('cAjQuem').innerHTML=s?`<b>${s.nome}</b> autoriza.`
+        :(quemPorCredencial(cv('cAjPin').trim())
+          ?'<span style="color:var(--danger)">Esta pessoa não é gestor.</span>':'');
+    }
+  };
+  const atualizar=()=>{upd();pintarMotivos();conferirAjuste();};
+  ['cCx','cFim'].forEach(i=>M(i)&&M(i).addEventListener('input',atualizar));
+  if(M('cAjPin'))M('cAjPin').addEventListener('input',conferirAjuste);
+  ligarOlhos();atualizar();
   M('cK').onclick=()=>{
     const cx=M('cCx').value;
     const i=o.iniReal,sf=o.setupFim,ei=iniEnvase(o);
@@ -6462,6 +6641,19 @@ function concluir(o){
       if(M('cFim'))M('cFim').focus();return;}
     o.fimReal=f;
     if(cx===''){toast('Informe as caixas atendidas.',true);M('cCx').focus();return;}
+    /* total diferente da soma assinada pelos operadores: precisa de gestor */
+    let ajuste='';
+    if(somaTurnos!=null&&(+cx||0)!==somaTurnos){
+      const mestre=!!(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.master);
+      const quemAj=mestre?{nome:(MEU_ACESSO.nome||'master')}:autorizador(cv('cAjPin').trim());
+      if(!quemAj){
+        toast('O total difere da soma dos turnos: informe o PIN ou a senha do gestor.',true);
+        if(M('cAjPin'))M('cAjPin').focus();return;}
+      const motAj=cv('cAjMot').trim();
+      if(!motAj){toast('Escreva por que o total é diferente.',true);
+        if(M('cAjMot'))M('cAjMot').focus();return;}
+      ajuste=`${nf(somaTurnos)} → ${nf(+cx)} cx · por ${quemAj.nome} · ${motAj}`;
+    }
     const obs=M('cObs').value.trim();
     /* fechar com menos caixas que o tanque rende é quebra: confirma antes,
        para ninguém descobrir a perda só no relatório do fim do mês */
@@ -6478,6 +6670,7 @@ function concluir(o){
       if(!escolha[et]&&v&&v.ids&&v.ids.length)
         escolha[et]={ids:new Set(v.ids),principal:v.principal};
     });
+    /* obrigatório apenas onde o desvio existe: marcar à toa vira resposta qualquer */
     const pend=desvios().filter(d=>!escolha[d.et]||!escolha[d.et].ids.size);
     if(pend.length){
       toast(`Informe o motivo: ${pend.map(p=>p.et==='quebra'?'quebra':p.et).join(', ')}.`,true);
@@ -6492,8 +6685,10 @@ function concluir(o){
       descr.push(`${(ETAPAS.find(x=>x[0]===et)||[,et])[1]}: ${nomes.join(', ')}`);
     });
     if(descr.length)registrar(o,'Motivos informados',null,descr.join(' · '));
+    if(ajuste)registrar(o,'Total ajustado pelo gestor',null,ajuste);
     const delta=hm(f)-fimPrev(o);
     o.caixas=+cx;o.status='concluida';
+    delete o.fimAnterior;   /* fechou de novo: a sugestão não serve mais */
     registrar(o,'OP concluída',null,
       `${i}–${f} · ${tempoReal(o)} min · ${nf(+cx)} cx${obs?` · ${obs}`:''}`);
     /* a quebra ganha linha própria: é o que o relatório vai somar */

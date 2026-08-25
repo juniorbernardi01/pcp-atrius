@@ -1952,7 +1952,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v101';
+const VERSAO_APP='v103';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -3765,8 +3765,20 @@ function imprimirEtiqueta(o){
       /* a impressão é disparada daqui, e não de dentro da página: uma tag de
          script dentro de template literal parte o arquivo HTML em dois */
       setTimeout(()=>{try{w.focus();w.print();}catch(e){}},400);
-      registrar(o,'Etiquetas impressas',null,`${q} etiqueta${q>1?'s':''} · lote ${cv('etLote')||'—'}`);
+      const quem=quemAssina(), lt=cv('etLote')||'—';
+      const det=`${q} etiqueta${q>1?'s':''} · lote ${lt} · DUN ${cod||'—'}`;
+      registrar(o,'Etiquetas impressas',null,det);
+      /* o lote do tanque também precisa saber: quem confere o fardo vai olhar
+         o histórico do lote, não o de uma OP de envase específica */
+      const b=batDe(o);
+      if(b){
+        const ap=APONTA[b.chave]||{};
+        APONTA[b.chave]={...ap,log:[...(ap.log||[]),
+          {t:relogio(),e:'Etiquetas impressas',op:quem,
+           m:`${nomeCurto(o.codigo)} · ${det}`}]};
+      }
       agendarSalvar();fecharModal();
+      toast(`${q} etiqueta${q>1?'s':''} · registrado no histórico do lote.`);
     }catch(e){toast('Não consegui abrir a janela de impressão.',true);}
   };
   abrirMask();
@@ -5794,8 +5806,7 @@ function abrirOrdem(o,pre){
           placeholder="automático"></div>
     </div>
     <div class="hint" id="fTqHint" style="font-size:11px;color:var(--ink3);margin:-6px 0 14px"></div>
-    ${o?'':`<div class="alert blue" style="margin-bottom:14px">Máquina e horário podem ficar em branco:
-      a OP vai para o painel da Programação e você arrasta para o bloco.</div>`}
+
 
     <div class="st2" style="margin-top:0">O que sai deste lote</div>
     <div class="opl">
@@ -5812,7 +5823,7 @@ function abrirOrdem(o,pre){
 
     <div class="g4">
       <div class="fld"><label>Máquina${o?' <b>*</b>':''}</label>
-        <select id="fMq" ${dis}><option value="">${o?'Selecione…':'na programação'}</option>
+        <select id="fMq" ${dis}><option value="">Selecione…</option>
         ${MAQUINAS.map(m=>`<option ${V('maq','')===m?'selected':''}>${m}</option>`).join('')}</select></div>
       <div class="fld"><label>Data <b>*</b></label>
         <input type="date" id="fDt" value="${o&&o.status==='pendente'?ymd(new Date()):V('data',ymd(S.ref))}" ${dis}></div>
@@ -6100,9 +6111,21 @@ function salvar(){
   }
   if(!f.litros||!f.codigo){
     toast('Informe o produto e o volume do tanque.',true);return;}
-  /* sem máquina a OP nasce pendente: quem programa arrasta para o bloco */
-  const semMaq=!f.maq;
-  if(semMaq){f.status='pendente';f.inicio=null;}
+  /* A OP sem máquina nascia 'pendente' e só aparecia no painel lateral do
+     envase — que foi removido. Ela virava uma OP invisível: existia no tanque,
+     ocupava lote e volume, e ninguém conseguia achá-la para programar ou
+     excluir. Máquina passou a ser obrigatória. */
+  if(!f.maq){
+    toast('Escolha a máquina. Sem ela a OP não entra na programação.',true);
+    if(M('fMq'))M('fMq').focus();
+    return;
+  }
+  if(f.inicio==null){
+    toast('Informe o horário de início.',true);
+    if(M('fHr'))M('fHr').focus();
+    return;
+  }
+
   if(!f.data)f.data=ymd(S.ref);
   if(f.saldoId){
     const sdv=SALDOS.find(x=>x.id===f.saldoId);
@@ -7270,6 +7293,57 @@ function modalAjuste(b){
 }
 
 let ABA_LOTE='preparo';
+/* =====================================================================
+   EXCLUIR UM LOTE DE TANQUE
+   A batelada é derivada das OPs de envase — apagar o lote é apagar as OPs.
+   Por isso a tela lista uma por uma antes de confirmar: quem clica precisa
+   ver o que vai embora junto.
+   ===================================================================== */
+function excluirLote(b){
+  const l=(b.ordens||[]).filter(o=>naGrade(o));
+  const cxTotal=l.reduce((s,o)=>s+caixasPrev(o),0);
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Excluir lote';
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${b.produto} · lote ${b.lote||'—'} · ${b.tanque||'sem tanque'}`;
+  M('mB').innerHTML=`
+    <div class="alert q"><b>Isto apaga também ${l.length===1?'a OP de envase'
+      :`as ${l.length} OPs de envase`} deste lote.</b>
+      O lote do tanque não existe sozinho — ele é o conjunto dessas ordens.</div>
+    <table class="tb"><thead><tr><th>OP</th><th>Produto</th><th>Máquina</th>
+      <th class="n">Caixas</th><th>Situação</th></tr></thead><tbody>
+      ${l.map(o=>`<tr>
+        <td class="mono">${String(o.id).slice(-6).toUpperCase()}</td>
+        <td>${nomeCurto(o.codigo)}</td>
+        <td>${o.maq||'—'}${o.inicio!=null?` · ${hhmm(o.inicio)}`:''}</td>
+        <td class="n mono">${nf(caixasPrev(o))}</td>
+        <td><span class="stq ${sit(o)}">${ST[sit(o)]}</span></td>
+      </tr>`).join('')}
+    </tbody></table>
+    <p class="adp">Somam ${nf(cxTotal)} caixas · ${nf(b.volume)} L no ${b.tanque||'tanque'}.</p>
+    <div class="fld"><label>Motivo <b>*</b></label>
+      <textarea id="xlMot" placeholder="Ex.: lançada errada, produto trocado"></textarea></div>`;
+  M('mF').innerHTML=`<div style="flex:1"></div>
+    <button class="btn" id="xlC">Voltar</button>
+    <button class="btn del" id="xlK">Excluir ${l.length} OP${l.length>1?'s':''}</button>`;
+  M('xlC').onclick=()=>abrirLote(b);
+  M('xlK').onclick=()=>{
+    const mot=cv('xlMot').trim();
+    if(!mot){toast('Escreva o motivo.',true);M('xlMot').focus();return;}
+    /* cancelada em vez de sumir da lista: o histórico do lote fica rastreável,
+       e o volume deixa de contar porque naGrade() e ativa() ignoram canceladas */
+    l.forEach(o=>{o.status='cancelada';
+      registrar(o,'OP excluída com o lote',null,`${b.produto} lote ${b.lote||'—'} · ${mot}`);});
+    const ap=APONTA[b.chave];
+    if(ap)APONTA[b.chave]={...ap,log:[...(ap.log||[]),
+      {t:relogio(),e:'Lote excluído',op:null,m:`${l.length} OP · ${mot}`}]};
+    agendarSalvar();fecharModal();render();
+    toast(`Lote excluído · ${l.length} OP${l.length>1?'s':''} cancelada${l.length>1?'s':''}.`);
+  };
+  abrirMask();
+}
+
 function abrirLote(b){
   if(!b)return;
   /* o lote nasce sozinho, em sequência: nunca se digita */
@@ -7339,6 +7413,13 @@ function abrirLote(b){
       ${b.log.map(x=>`<div class="e"><span class="t">${x.t}</span>
       <span><b>${x.e}</b>${x.op?` · ${x.op}`:''}${x.m?`<em>${x.m}</em>`:''}</span></div>`).join('')}</div>`:''}`;
   const edT=podeEditar('tanques');
+  /* Excluir o lote é excluir as OPs de envase dele: a batelada não existe por
+     si, ela é derivada das ordens. Sem este botão, uma OP lançada errada que
+     só aparecia no tanque não tinha como ser apagada de lugar nenhum. */
+  const podeApagar=b.origem!=='saldo'&&b.ordens&&b.ordens.length
+    &&b.ordens.every(o=>sit(o)!=='concluida')&&nivel('envase')==='excluir';
+  M('mAcao').innerHTML=podeApagar
+    ?`<button class="btn del sm" id="lDel">Excluir lote</button>`:'';
   M('mF').innerHTML=`
     ${b.tanque&&b.origem!=='saldo'&&b.status!=='concluido'&&edT
       ?`<button class="btn sm" id="lV">Voltar para a programar</button>`:''}
@@ -7353,6 +7434,7 @@ function abrirLote(b){
         >Liberar lote</button>`:''}`;
   M('lC').onclick=fecharModal;
   if(M('lV'))M('lV').onclick=()=>{fecharModal();devolverParaProgramar(b);};
+  if(M('lDel'))M('lDel').onclick=()=>excluirLote(b);
 
   ligarCertificado(b);
   if(M('lK'))M('lK').onclick=()=>{
@@ -7482,23 +7564,24 @@ function barrasITF14(codigo,larguraMM,alturaMM){
   }
   els.push({t:'W',barra:true},{t:'N',barra:false},{t:'N',barra:true});  /* fim */
   const un=els.reduce((a,e)=>a+(e.t==='W'?3:1),0);
-  const quiet=10, molde=4.5;                 /* zona de silêncio e moldura */
+  /* Moldura só em cima e embaixo — é o mínimo do padrão ITF-14 e o que impede
+     a leitura parcial: o leitor pegar meio código e devolver um número curto
+     que parece válido. As laterais saem, que era o que mais pesava na etiqueta.
+     A zona de silêncio fica larga: é ela que diz onde o código começa. */
+  const quiet=12, molde=1.2;
   const esc=larguraMM/(un+quiet*2);
-  const g=molde*esc;
+  const g=Math.max(0.4,molde*esc);
   let x=quiet*esc,r='';
   els.forEach(e=>{
     const w=(e.t==='W'?3:1)*esc;
-    if(e.barra)r+=`<rect x="${x.toFixed(3)}" y="${g}" width="${w.toFixed(3)}" height="${(alturaMM-g*2).toFixed(3)}"/>`;
+    if(e.barra)r+=`<rect x="${x.toFixed(3)}" y="${g.toFixed(3)}" width="${w.toFixed(3)}" height="${(alturaMM-g*2).toFixed(3)}"/>`;
     x+=w;
   });
-  /* a moldura é exigência do ITF-14: sem ela o leitor pode ler pela metade */
   return `<svg viewBox="0 0 ${larguraMM} ${alturaMM}" width="100%" height="100%"
     preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
     shape-rendering="crispEdges" fill="#000">
-    <rect x="0" y="0" width="${larguraMM}" height="${g}"/>
-    <rect x="0" y="${alturaMM-g}" width="${larguraMM}" height="${g}"/>
-    <rect x="0" y="0" width="${g}" height="${alturaMM}"/>
-    <rect x="${larguraMM-g}" y="0" width="${g}" height="${alturaMM}"/>
+    <rect x="0" y="0" width="${larguraMM}" height="${g.toFixed(3)}"/>
+    <rect x="0" y="${(alturaMM-g).toFixed(3)}" width="${larguraMM}" height="${g.toFixed(3)}"/>
     ${r}</svg>`;
 }
 /* 1 7898556 04010 2 — a leitura humana separa os blocos do GS1 */

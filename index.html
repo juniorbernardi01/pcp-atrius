@@ -1246,11 +1246,12 @@ function quemPorCredencial(v){
   const s=String(v||'').trim();
   if(!s)return null;
   const op=opPorPin(s);
-  if(op)return {nome:op.nome,funcao:op.funcao||op.papel,id:op.id,tipo:'operador',op:op};
+  if(op)return {nome:op.nome,funcao:op.funcao||op.papel,id:op.id,tipo:'operador',
+    op:op,nivel:nivelDe(op)};
   const ac=(typeof ACESSOS!=='undefined'?ACESSOS:[])
     .find(a=>a.ativo!==false&&a.senha&&String(a.senha)===s);
-  if(ac)return {nome:ac.nome||ac.email,funcao:ac.master?'master':(ac.funcao||''),
-    email:ac.email,master:!!ac.master,tipo:'acesso'};
+  if(ac)return {nome:ac.nome||ac.email,funcao:ac.funcao||'',
+    email:ac.email,master:nivelDe(ac)==='master',tipo:'acesso',nivel:nivelDe(ac)};
   return null;
 }
 /* o nome de quem está no sistema agora — nunca o de outra pessoa */
@@ -1945,7 +1946,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v96';
+const VERSAO_APP='v97';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -2461,6 +2462,13 @@ function corpoAba(a){
       A conta é criada aqui: o sistema gera a senha e ela fica visível até ser trocada.
       Se a pessoa trocar, use <b>Redefinir</b> para gerar outra — ninguém consegue
       ver uma senha escolhida por outra pessoa, nem o sistema.</p>
+    <div class="alert" style="margin-bottom:12px">
+      <b>O nível decide quem autoriza exceção</b> — correção de horário, ajuste de
+      total, liberação de lote. A grade de telas ao lado é outra coisa: decide o
+      que a pessoa <i>enxerga</i>.<br>
+      <span style="color:var(--ink2)">Master faz tudo e cadastra pessoas ·
+      Gestor e Supervisor autorizam · Operador lança e não autoriza ninguém.
+      Operadores de máquina entram por nome e PIN, na lista abaixo.</span></div>
     <div id="acgrid"></div>
     <div class="st">Operadores</div>
     <p class="adp">Quem lança no chão de fábrica. Não entram sozinhos no sistema: usam o PIN
@@ -4902,12 +4910,40 @@ const litrosFaltam=o=>cxFaltam(o)*litrosCx(o);
 const minTurnos=o=>turnosDe(o).reduce((s,t)=>s+Math.max(0,hm(t.fim)-hm(t.ini)),0);
 
 /* quem pode liberar edição do que já foi fechado */
-const ehSupervisor=op=>op&&/supervis|gestor|master/i.test(String(op.funcao||op.papel||''));
+/* =====================================================================
+   NÍVEL DA PESSOA
+   Antes o nível era deduzido do texto livre do campo "função", por regex.
+   Quem escrevesse "Qualidade" em vez de "gestor" perdia a autorização sem
+   nunca saber por quê — e a coluna funcao sequer existia na tabela, então
+   ninguém era gestor: só o master passava. Agora é um campo com quatro
+   valores, escolhido numa lista.
+   ===================================================================== */
+const NIVEIS_PESSOA=[
+  ['master',    'Master',     'Faz tudo, inclusive cadastrar pessoas e autorizar qualquer coisa'],
+  ['gestor',    'Gestor',     'Autoriza correção de horário, ajuste de total e liberação de lote'],
+  ['supervisor','Supervisor', 'Autoriza correção de horário e ajuste de total'],
+  ['operador',  'Operador',   'Lança a produção; não autoriza exceção de ninguém'],
+];
+const ROTULO_NIVEL=n=>(NIVEIS_PESSOA.find(x=>x[0]===n)||[,'Operador'])[1];
+/* quem autoriza exceção: master, gestor e supervisor */
+const AUTORIZAM=['master','gestor','supervisor'];
+/* Lê o nível de um cadastro, aceitando o formato antigo: quem tinha master
+   marcado continua master, e o texto da função ainda é honrado enquanto os
+   níveis não forem revisados um a um. */
+function nivelDe(a){
+  if(!a)return 'operador';
+  if(a.nivel&&NIVEIS_PESSOA.some(x=>x[0]===a.nivel))return a.nivel;
+  if(a.master)return 'master';
+  const t=String(a.funcao||a.papel||'');
+  if(/gestor/i.test(t))return 'gestor';
+  if(/supervis/i.test(t))return 'supervisor';
+  return 'operador';
+}
+const ehSupervisor=op=>AUTORIZAM.includes(nivelDe(op));
 function autorizador(cred){
   const q=quemPorCredencial(cred);
   if(!q)return null;
-  if(q.tipo==='acesso')return (q.master||/gestor|supervis/i.test(q.funcao||''))?q:null;
-  return ehSupervisor(q.op)?q:null;
+  return AUTORIZAM.includes(q.nivel)?q:null;
 }
 
 /* minutos fora da jornada da máquina naquele turno */
@@ -8099,13 +8135,17 @@ async function gradeAcessos(){
   };
   el.innerHTML=`
     <table class="tb"><thead><tr>
-      <th>Pessoa</th><th>E-mail</th><th>Senha</th>
+      <th>Pessoa</th><th>E-mail</th><th>Nível</th><th>Senha</th>
       ${TELAS.map(t=>`<th>${t[1]}</th>`).join('')}
       <th>Situação</th><th></th>
     </tr></thead><tbody>
     ${ACESSOS.map(a=>`<tr class="${a.ativo?'':'inat'}">
-      <td><b>${a.nome}</b>${a.master?' <span class="pill ok">master</span>':''}</td>
+      <td><b>${a.nome}</b></td>
       <td class="mono">${a.email}</td>
+      <td><select class="np nvl" data-nivel="${a.email}">
+        ${NIVEIS_PESSOA.map(([k,r])=>
+          `<option value="${k}" ${nivelDe(a)===k?'selected':''}>${r}</option>`).join('')}
+      </select></td>
       <td class="mono">${a.senha
         ?`<span class="sen">${escAttr(a.senha)}</span>`
         :'<span class="k">sem senha definida</span>'}</td>
@@ -8131,7 +8171,23 @@ async function gradeAcessos(){
   el.querySelectorAll('[data-acdel]').forEach(b=>b.onclick=()=>excluirAcesso(b.dataset.acdel));
   el.querySelectorAll('[data-acsen]').forEach(b=>b.onclick=()=>redefinirSenha(b.dataset.acsen));
   /* permissão por tela grava na hora */
-  el.querySelectorAll('select.np').forEach(s=>s.addEventListener('change',async()=>{
+  /* nível grava na hora, e master continua marcando o campo antigo para as
+     telas que ainda perguntam por MEU_ACESSO.master */
+  el.querySelectorAll('select.nvl').forEach(s=>s.addEventListener('change',async()=>{
+    const a=ACESSOS.find(x=>x.email===s.dataset.nivel);if(!a)return;
+    const nv=s.value, eraMestre=nivelDe(a)==='master';
+    if(eraMestre&&nv!=='master'
+       &&ACESSOS.filter(x=>x.ativo!==false&&nivelDe(x)==='master').length<=1){
+      toast('Precisa haver ao menos um master ativo.',true);gradeAcessos();return;}
+    try{
+      await gravarAcesso({nivel:nv,master:nv==='master'},false,a.email);
+      a.nivel=nv;a.master=(nv==='master');
+      if(nv==='master')a.perm={};
+      gradeAcessos();
+      toast(`${a.nome} agora é ${ROTULO_NIVEL(nv).toLowerCase()}.`);
+    }catch(e){toast(e.message,true);gradeAcessos();}
+  }));
+  el.querySelectorAll('select.np:not(.nvl)').forEach(s=>s.addEventListener('change',async()=>{
     const a=ACESSOS.find(x=>x.email===s.dataset.mail);if(!a)return;
     const perm={...(a.perm||{})};
     if(s.value)perm[s.dataset.tela]=s.value; else delete perm[s.dataset.tela];
@@ -8185,8 +8241,9 @@ async function modalAcesso(a){
         ${novo?'':'Deixe como está para não mexer na senha.'}</div></div>
     <label class="chk"><input type="checkbox" id="acAtivo" ${a.ativo!==false?'checked':''}>
       <span><b>Ativo</b> — pode entrar no sistema</span></label>
-    <label class="chk"><input type="checkbox" id="acMaster" ${a.master?'checked':''}>
-      <span><b>Master</b> — enxerga tudo e cadastra pessoas</span></label>
+    <div class="fld"><label>Nível <b>*</b></label>
+      <select id="acNivel">${NIVEIS_PESSOA.map(([k,r,d])=>
+        `<option value="${k}" ${nivelDe(a)===k?'selected':''}>${r} — ${d}</option>`).join('')}</select></div>
     <p class="adp" style="margin-top:14px">O que esta pessoa faz em cada tela.
       Tela sem nível não aparece no menu dela.</p>
     <table class="tb"><tbody id="acPerm">
@@ -8201,12 +8258,14 @@ async function modalAcesso(a){
     <button class="btn" id="acC">Voltar</button>
     <button class="btn pri" id="acK">${novo?'Cadastrar':'Salvar'}</button></div>`;
   ligarOlhos();
+  /* master enxerga tudo por definição: a grade some para não sugerir que
+     dá para tirar uma tela dele */
   const travar=()=>{
-    const m=M('acMaster').checked;
+    const m=M('acNivel').value==='master';
     M('acPerm').querySelectorAll('select.np').forEach(s=>{
       s.disabled=m; if(m)s.value='excluir';});
   };
-  M('acMaster').addEventListener('change',travar); travar();
+  M('acNivel').addEventListener('change',travar); travar();
   M('acGera').onclick=()=>{M('acSen').value=gerarSenha();M('acSen').type='text';};
   M('acC').onclick=fecharModal;
   M('acK').onclick=async()=>{
@@ -8222,10 +8281,10 @@ async function modalAcesso(a){
       if(igual){toast(`Essa senha já é de ${igual.nome||igual.email}. Use outra.`,true);return;}
       if(opPorPin(sen)){toast('Essa senha é igual ao PIN de um operador. Use outra.',true);return;}
     }else if(novo){toast('Defina uma senha para a pessoa entrar.',true);M('acSen').focus();return;}
-    const master=M('acMaster').checked;
+    const nivel=cv('acNivel'), master=nivel==='master';
     const p={};
     M('acPerm').querySelectorAll('select.np').forEach(s=>{if(s.value)p[s.dataset.tela]=s.value;});
-    const linha={nome:nome,email:mail,funcao:cv('acFun').trim(),
+    const linha={nome:nome,email:mail,funcao:cv('acFun').trim(),nivel:nivel,
       master:master,ativo:M('acAtivo').checked,perm:master?{}:p};
     if(sen)linha.senha=sen;
     M('acK').disabled=true;M('acK').textContent='Salvando…';

@@ -1671,6 +1671,12 @@ const dCurto=s=>new Date(s+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit
 
 const MODO_TV=(()=>{try{return /(^|[?#&])tv\b/.test(location.hash+location.search);}catch(e){return false;}})();
 const S={page:'inicio',view:'dia',ref:new Date(),refTq:new Date(),sel:null};
+/* Telas que o endereço reconhece. Vive aqui, junto do estado, porque o bloco
+   de arranque lê o hash antes do fim do arquivo: declarado lá embaixo com
+   const, ele ainda não existe na hora da leitura e o lerRota() estourava
+   ReferenceError — engolido por um catch vazio. O F5 então voltava sempre
+   para o Início, sem erro nenhum na tela. */
+const ROTAS=['inicio','envase','tanques','sopro','rotulagem','relatorio','admin'];
 
 /* =====================================================================
    ORDENS — base zerada, pronta para lançar
@@ -1952,7 +1958,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v104';
+const VERSAO_APP='v105';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -9124,10 +9130,15 @@ try{
   M('quem').querySelector('b').textContent=nomeDaSessao()==='—'?'':nomeDaSessao();
 }catch(e){}
 if(M('assina'))M('assina').onclick=trocarOperador;
-try{const r0=lerRota(location.hash);if(r0&&!MODO_TV){S.page=r0.page;
-  if(r0.page==='admin'&&r0.aba)ABA_ADMIN=r0.aba;
-  if(r0.page==='relatorio'&&r0.aba)ABA_REP=r0.aba;
-  if(r0.page==='envase'&&r0.aba)S.view=r0.aba;}}catch(e){}
+try{
+  const r0=lerRota(location.hash);
+  if(r0&&!MODO_TV){
+    S.page=r0.page;
+    if(r0.page==='admin'&&r0.aba)ABA_ADMIN=r0.aba;
+    if(r0.page==='relatorio'&&r0.aba)ABA_REP=r0.aba;
+    if(r0.page==='envase'&&r0.aba)S.view=r0.aba;
+  }
+}catch(e){console.warn('não consegui ler a tela do endereço:',e);}
 restaurar();
 try{window.addEventListener('beforeunload',()=>{try{localStorage.setItem(CHAVE,estadoAtual());}catch(e){}});}catch(e){}
 setInterval(()=>{if(!M('mask').classList.contains('on')&&!DRAG&&!ARR&&!FDRAG&&!SDRAG&&!CDRAG)render();},60000);
@@ -9138,7 +9149,6 @@ setInterval(()=>{if(!M('mask').classList.contains('on')&&!DRAG&&!ARR&&!FDRAG&&!S
    Cada tela vira um endereço. Assim o voltar do navegador funciona,
    dá para abrir o sistema já numa tela e o F5 não perde o lugar.
    ===================================================================== */
-const ROTAS=['inicio','envase','tanques','sopro','rotulagem','relatorio','admin'];
 let VOLTANDO=false;                       /* mudou por causa do botão voltar */
 
 function rotaAtual(){

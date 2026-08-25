@@ -1878,6 +1878,9 @@ function faltaNoFrasco(oc){
    RENDER
    ===================================================================== */
 const M=id=>document.getElementById(id);
+/* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
+   novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
+const VERSAO_APP='v82';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -1941,7 +1944,8 @@ function topo(conf){
   if(mq){
     const nome=nomeDaSessao()==='—'?'':nomeDaSessao();
     const mail=(typeof emailDaSessao==='function'&&emailDaSessao())||'';
-    mq.innerHTML=nome?`<b>${nome}</b>${mail?`<span>${mail}</span>`:''}`:'';
+    mq.innerHTML=(nome?`<b>${nome}</b>${mail?`<span>${mail}</span>`:''}`:'')
+      +`<span style="opacity:.65;margin-top:3px">PCP ${VERSAO_APP}</span>`;
   }
   const et=M('etsw');
   et.style.display=['envase','tanques'].includes(S.page)?'':'none';
@@ -4898,7 +4902,12 @@ function marcarEtapa(o,et){
 /* corrigir horário marcado por engano: pede o motivo e deixa rastro */
 function corrigirHorarios(o){
   const fim=sit(o)==='concluida';
+  /* Regra do Junior: depois que a OP saiu para a máquina, quem manda no horário
+     é o gestor. Antes disso não existe horário real para corrigir, então a
+     tela nem aparece. Master não precisa provar quem é: já provou no login. */
+  const jaRodou=!!(o.iniReal||o.envIni||o.fimReal);
   const souMestre=!!(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.master);
+  const pedeAut=jaRodou&&!souMestre;
   if(M('mAcao'))M('mAcao').innerHTML='';
   M('modal').classList.remove('wide');
   M('mTit').textContent='Corrigir horários';
@@ -4906,8 +4915,18 @@ function corrigirHorarios(o){
   M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq||'—'} · lote ${o.lote||'—'}`;
   M('mB').innerHTML=`
     <div class="alert">Só para acertar o que foi marcado errado.
-      ${fim?'A OP está concluída, então precisa de <b>autorização de supervisor</b>.':''}
+      ${pedeAut?`A OP já ${fim?'foi concluída':'está na máquina'}, então precisa da
+        <b>senha ou PIN do gestor</b>.`:''}
       A correção fica no histórico.</div>
+    <div class="sec"><div class="st">Programado</div></div>
+    <div class="g3">
+      <div class="fld"><label>Dia</label>
+        <input type="date" id="chDia" value="${o.data||''}"></div>
+      <div class="fld"><label>Início programado</label>
+        <input type="time" id="chIni" step="300" value="${o.inicio!=null?hhmm(o.inicio):''}"></div>
+      <div class="fld"></div>
+    </div>
+    <div class="sec"><div class="st">Realizado</div></div>
     <div class="g3">
       <div class="fld"><label>Início do setup</label>
         <input type="time" id="chSet" step="300" value="${o.iniReal||''}"></div>
@@ -4917,7 +4936,7 @@ function corrigirHorarios(o){
         <input type="time" id="chFim" step="300" value="${o.fimReal||''}"></div>
     </div>
     <div class="calc" id="chCalc"></div>
-    ${(fim&&!souMestre)?`<div class="fld"><label>PIN ou senha do supervisor <b>*</b></label>
+    ${pedeAut?`<div class="fld"><label>PIN ou senha do gestor <b>*</b></label>
       <div class="secreto">
         <input id="chPin" type="password" 
           placeholder="••••" autocomplete="off">
@@ -4932,26 +4951,39 @@ function corrigirHorarios(o){
     <button class="btn" id="chC">Voltar</button>
     <button class="btn pri" id="chK">Salvar correção</button></div>`;
   const upd=()=>{
-    const s=cv('chSet'),e=cv('chEnv'),f=cv('chFim');
+    const s=cv('chSet'),e=cv('chEnv'),f=cv('chFim'),pi=cv('chIni');
     let t=[];
+    const partida=s||e;
+    if(pi&&partida&&hm(pi)!==hm(partida))
+      t.push(`Programado <b>${pi}</b> e começou <b>${partida}</b>: o bloco fica no `
+        +`programado e o desvio aparece no relatório.`);
     if(s&&e)t.push(hm(e)>=hm(s)?`Setup levou <b>${hmm(hm(e)-hm(s))}</b> · previsto ${o.setup} min.`
       :'<span class="w">O envase está antes do setup.</span>');
     if(e&&f)t.push(hm(f)>=hm(e)?`Envase levou <b>${hmm(hm(f)-hm(e))}</b> · previsto ${o.envase} min.`
       :'<span class="w">O fim está antes do início do envase.</span>');
     M('chCalc').innerHTML=t.join('<br>');
   };
-  ['chSet','chEnv','chFim'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));upd();
+  ['chSet','chEnv','chFim','chIni'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));upd();
   ligarOlhos();
   if(M('chPin'))M('chPin').addEventListener('input',()=>{
     const s=autorizador(cv('chPin').trim());
     M('chQuem').innerHTML=s?`<b>${s.nome}</b> · ${s.funcao||s.papel}`
-      :(quemPorCredencial(cv('chPin').trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
+      :(quemPorCredencial(cv('chPin').trim())?'<span style="color:var(--danger)">Esta pessoa não é gestor.</span>':'');
   });
   const liberar=()=>{
-    if(!fim)return {nome:quemAssina()};
     if(souMestre)return {nome:(MEU_ACESSO.nome||'master')};
-    const s=autorizador(cv('chPin').trim());
-    if(!s){toast('Precisa do PIN ou da senha de um supervisor.',true);return null;}
+    if(!pedeAut)return {nome:quemAssina()};
+    const cred=cv('chPin').trim();
+    if(!cred){toast('Informe o PIN ou a senha do gestor.',true);M('chPin').focus();return null;}
+    const s=autorizador(cred);
+    if(!s){
+      /* separa "senha errada" de "essa pessoa não autoriza": some coisa,
+         mas a segunda o operador resolve sozinho chamando quem pode */
+      const q=quemPorCredencial(cred);
+      toast(q?`${q.nome} não é gestor e não pode autorizar correção.`
+             :'PIN ou senha não confere.',true);
+      return null;
+    }
     return s;
   };
   const aplicar=(novo,rotulo)=>{
@@ -4959,11 +4991,25 @@ function corrigirHorarios(o){
     if(!mot){toast('Escreva o motivo.',true);M('chMot').focus();return;}
     const quem=liberar();if(!quem)return;
     const antes=`${o.iniReal||'—'} / ${o.envIni||'—'} / ${o.fimReal||'—'}`;
+    const antesProg=`${o.data} ${o.inicio!=null?hhmm(o.inicio):'—'}`;
     o.iniReal=novo.set;o.envIni=novo.env;o.fimReal=novo.fim;
     if(!o.fimReal)o.caixas=null;
+    /* a programação também: foi ela que a Fernanda lançou errado. Marcado à mão,
+       o recomporDia para de reescrever com a hora real — mas só desta OP, e só
+       enquanto o programado e o real estiverem diferentes de propósito. */
+    if(novo.dia)o.data=novo.dia;
+    if(novo.prog){
+      const novoIni=hm(novo.prog);
+      if(o.inicioOriginal==null&&o.inicio!==novoIni)o.inicioOriginal=o.inicio;
+      o.inicio=novoIni;
+      const partida=o.iniReal||o.envIni;
+      o.inicioManual=!!(partida&&hm(partida)!==novoIni);
+    }
+    const depoisProg=`${o.data} ${o.inicio!=null?hhmm(o.inicio):'—'}`;
     registrar(o,rotulo,null,
-      `${antes} → ${o.iniReal||'—'} / ${o.envIni||'—'} / ${o.fimReal||'—'} · por ${quem.nome} · ${mot}`);
-    agendarSalvar();fecharModal();render();toast('Horários corrigidos.');
+      `${antesProg} → ${depoisProg} · realizado ${antes} → `
+      +`${o.iniReal||'—'} / ${o.envIni||'—'} / ${o.fimReal||'—'} · por ${quem.nome} · ${mot}`);
+    agendarSalvar();fecharModal();render();toast('Corrigido.');
   };
   M('chC').onclick=()=>abrirOrdem(o);
   M('chK').onclick=()=>{
@@ -4971,9 +5017,12 @@ function corrigirHorarios(o){
     if(s&&e&&hm(e)<hm(s)){toast('O envase não pode começar antes do setup.',true);return;}
     if(e&&f&&hm(f)<hm(e)){toast('O fim não pode ser antes do início do envase.',true);return;}
     if(f&&!e){toast('Informe o início do envase.',true);return;}
-    aplicar({set:s,env:e,fim:f},'Horários corrigidos');
+    aplicar({set:s,env:e,fim:f,prog:cv('chIni'),dia:cv('chDia')},'Corrigida');
   };
-  M('chLimpa').onclick=()=>aplicar({set:'',env:'',fim:''},'Horários apagados');
+  /* apagar o realizado devolve a OP ao controle da fila: sem hora real,
+     não há mais o que fixar à mão */
+  M('chLimpa').onclick=()=>{o.inicioManual=false;
+    aplicar({set:'',env:'',fim:'',prog:cv('chIni'),dia:cv('chDia')},'Horários apagados');};
   abrirMask();
 }
 
@@ -5406,6 +5455,11 @@ function abrirOrdem(o,pre){
   M('mSub').innerHTML=o?`#${o.id} · <span class="stq ${sit(o)}">${ST[sit(o)]}</span>`:'';
   M('mSub').hidden=!o;M('modal').classList.add('wide');
   const dis=fim?'disabled':'';
+  /* Depois que a OP começa, recomporDia() reescreve o início com a hora real
+     a cada recomposição — editar este campo não durava até o próximo render.
+     Campo que não segura o que recebe tem que estar travado, não mudo. */
+  const comecou=!!(o&&(o.iniReal||o.envIni));
+  const mestre=!!(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.master);
   const sdId=o?o.saldoId:(pre&&pre.saldoId);
   SALDO_ATUAL=sdId||null;
   const sd=sdId?SALDOS.find(x=>x.id===sdId):null;
@@ -5466,7 +5520,11 @@ function abrirOrdem(o,pre){
       <div class="fld"><label>Data <b>*</b></label>
         <input type="date" id="fDt" value="${o&&o.status==='pendente'?ymd(new Date()):V('data',ymd(S.ref))}" ${dis}></div>
       <div class="fld"><label>Início${o?' <b>*</b>':''}</label>
-        <input type="time" id="fHr" step="900" value="${hhmm(o&&o.inicio==null?H0*60:V('inicio',H0*60))}" ${dis}></div>
+        <input type="time" id="fHr" step="900" value="${hhmm(o&&o.inicio==null?H0*60:V('inicio',H0*60))}"
+          ${dis||(comecou&&!mestre?'disabled':'')}>
+        ${comecou?`<div class="hint" style="font-size:11px;color:var(--ink3);margin-top:4px">
+          ${o.inicioManual?'Fixado à mão.':'Segue a hora real.'}
+          <button type="button" class="linkb" id="fCorr2">Corrigir horários</button></div>`:''}</div>
       <div class="fld"><label>Fim previsto</label>
         <div class="fimbox" id="fFimP">--:--</div></div>
     </div>
@@ -5553,7 +5611,15 @@ function abrirOrdem(o,pre){
   M('mB').querySelectorAll('[data-tned]').forEach(b=>b.onclick=()=>
     corrigirTurno(o,+b.dataset.tned));
   if(M('mEtapa'))M('mEtapa').onclick=()=>marcarEtapa(o,etapaAtual(o));
+  /* este botão era desenhado e nunca ligado a nada: clicar não fazia coisa
+     alguma, sem erro na tela. É o mesmo caso do cadastro de pessoas. */
+  if(M('mFim'))M('mFim').onclick=()=>concluir(o);
+  /* mesmo caso: a função reabrir() existe inteira e o botão nunca a chamava.
+     Concluir uma OP por engano era, na prática, definitivo. */
+  if(M('mReab'))M('mReab').onclick=()=>reabrir(o);
   if(M('fCorr'))M('fCorr').onclick=()=>corrigirHorarios(o);
+  /* o mesmo caminho, alcançável de onde a pessoa está olhando */
+  if(M('fCorr2'))M('fCorr2').onclick=()=>corrigirHorarios(o);
   if(M('mEdit'))M('mEdit').onclick=()=>liberarEdicao(o);
 
   /* lista de produtos filtrável por SKU ou nome */
@@ -5769,6 +5835,12 @@ function salvar(){
     }
     const antesSit=sit(EDIT),antes=retrato(EDIT);
     const eraPendente=EDIT.status==='pendente';
+    /* mexeu no início de uma OP que já começou: é decisão de gente, não da fila.
+       Sem isto o recomporDia devolveria o valor antigo no próximo render e o
+       campo pareceria não ter salvado. */
+    const partiu=EDIT.iniReal||EDIT.envIni;
+    if(partiu&&f.inicio!=null&&f.inicio!==EDIT.inicio)EDIT.inicioManual=true;
+    if(!partiu)EDIT.inicioManual=false;
     Object.assign(EDIT,f);
     if(eraPendente){EDIT.status='programada';
       registrar(EDIT,'Saldo reprogramado',null,`${f.maq} ${hhmm(f.inicio)} em ${dCurto(f.data)}`);}
@@ -5821,14 +5893,16 @@ function recomporDia(maq,data){
          atrasou, empurra; se terminou cedo, puxa e fecha o buraco */
       const partida=x.iniReal||x.envIni;
       const alvo=Math.min(Math.max(Math.round(cursor),ji),jf-SNAP);
-      if(partida){
-        /* já começou: quem manda é a hora real, senão o buraco mostrado mente */
+      if(partida&&!x.inicioManual){
+        /* já começou: quem manda é a hora real, senão o buraco mostrado mente.
+           A exceção é o gestor ter fixado o horário à mão na tela de correção —
+           aí o que ele decidiu vale mais que o que foi marcado no botão. */
         const real=hm(partida);
         if(x.inicio!==real){
           if(x.inicioOriginal==null)x.inicioOriginal=x.inicio;
           x.inicio=real;
         }
-      }else if(alvo!==x.inicio){
+      }else if(!partida&&alvo!==x.inicio){
         if(x.inicioOriginal==null)x.inicioOriginal=x.inicio;
         x.inicio=alvo;
       }

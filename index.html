@@ -1713,9 +1713,15 @@ const ST={programada:'Programada',preparacao:'Preparação',producao:'Produção
 /* a situação vem dos horários lançados, não de um campo escolhido */
 function sit(o){
   if(['cancelada','pendente'].includes(o.status))return o.status;
+  /* Conclusão vem primeiro, sempre. Esta ordem estava invertida: a regra dos
+     turnos vencia a conclusão, então uma OP que virou o dia por fim de turno
+     nunca conseguia fechar — o operador concluía, o histórico registrava, e o
+     sit() devolvia 'producao' de novo porque a soma dos turnos era menor que
+     o previsto. E era menor de propósito: a produção do segundo dia entrou
+     pela conclusão, não como turno. */
+  if(o.fimReal&&o.caixas!=null)return 'concluida';
   /* turnos abertos: a OP continua em produção mesmo com o dia fechado */
   if((o.turnos||[]).length&&cxFeitas(o)<caixasPrev(o))return 'producao';
-  if(o.fimReal&&o.caixas!=null)return 'concluida';
   if(o.fimReal)return 'finalizado';
   if(o.envIni) return 'producao';
   if(o.iniReal)return 'preparacao';
@@ -1946,7 +1952,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v98';
+const VERSAO_APP='v99';
 let DRAG=null;
 function render(){
   recomporTudo();

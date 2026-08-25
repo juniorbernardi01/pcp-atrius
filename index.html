@@ -1946,7 +1946,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v97';
+const VERSAO_APP='v98';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -4971,8 +4971,11 @@ function etapaAtual(o){
   if(!o.iniReal&&!o.envIni&&turnosDe(o).length)return 'retomar';
   if(!o.iniReal&&!o.envIni)return o.setup>0?'setup':'envase';
   if(!o.envIni)return 'envase';
-  if(!o.fimReal)return 'fim';
-  return null;
+  /* Começou e não está concluída: sempre dá para concluir. Antes, quando o
+     fimReal já estava preenchido — OP reaberta, turno que fechou o volume,
+     divisão que mudou as caixas previstas — esta função devolvia null e a OP
+     ficava sem nenhum botão de fechamento. Estado sem saída é bug, não regra. */
+  return 'fim';
 }
 const ROTULO_ETAPA={setup:'Iniciar setup',envase:'Iniciar envase',
   retomar:'Retomar envase',fim:'Concluir envase'};
@@ -5711,11 +5714,11 @@ function abrirOrdem(o,pre){
   /* OP concluída abre travada: para mexer, o usuário pede Editar de propósito */
   if(o&&fim&&ed&&!DESTRAVADA)
     acts.push(`<button class="btn sm" id="mEdit">Editar</button>`);
-  if(o&&ed&&sit(o)==='finalizado'){
-    fechas.push(`<button class="btn blue" id="mFim">Concluir envase</button>`);
-    /* desmarcar o fim devolve a OP para produção sem passar por concluir */
+  /* Concluir envase agora vem sempre do botão de etapa, um só. O botão avulso
+     que existia aqui cobria apenas 'finalizado' e deixava de fora justamente a
+     OP em produção com turnos lançados. */
+  if(o&&ed&&sit(o)==='finalizado')
     acts.push(`<button class="btn warn sm" id="mVolta">Voltar a produzir</button>`);
-  }
 
   /* excluir fica sozinho no alto, longe dos botões que se usa todo dia */
   M('mAcao').innerHTML=(o&&!fim&&xc)?`<button class="btn del sm" id="mDel">Excluir</button>`:'';
@@ -5752,7 +5755,6 @@ function abrirOrdem(o,pre){
   if(M('mEtapa'))M('mEtapa').onclick=()=>marcarEtapa(o,etapaAtual(o));
   /* este botão era desenhado e nunca ligado a nada: clicar não fazia coisa
      alguma, sem erro na tela. É o mesmo caso do cadastro de pessoas. */
-  if(M('mFim'))M('mFim').onclick=()=>concluir(o);
   if(M('mVolta'))M('mVolta').onclick=()=>voltarAProduzir(o);
   /* mesmo caso: a função reabrir() existe inteira e o botão nunca a chamava.
      Concluir uma OP por engano era, na prática, definitivo. */

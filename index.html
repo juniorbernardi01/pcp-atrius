@@ -1952,7 +1952,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v99';
+const VERSAO_APP='v100';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -5208,8 +5208,11 @@ function turnosHTML(o){
         <input type="time" id="fFimR" step="300" value="${o.fimReal||''}" disabled>
         <div class="hint" id="fEnvT" style="font-size:11px;color:var(--ink3);margin-top:4px"></div></div>
     </div>
-    ${o.caixas!=null?`<div class="fld" style="max-width:230px"><label>Caixas produzidas</label>
-      <input type="number" id="fCx" value="${o.caixas}" disabled></div>`:''}
+    ${o.caixas!=null?`<div class="fld" style="max-width:340px"><label>Caixas produzidas</label>
+      <input type="number" id="fCx" value="${o.caixas}" disabled>
+      <div class="hint" style="font-size:11px;color:var(--ink3);margin-top:4px">
+        <button type="button" class="linkb" id="fCorrCx">Corrigir as caixas</button>
+        — errar o número aqui muda a quebra do relatório.</div></div>`:''}
   </div>
   <div class="sec">
     ${'' /* A tabela de turnos saiu: cada turno já vira linha no histórico, com
@@ -5768,6 +5771,7 @@ function abrirOrdem(o,pre){
   if(M('fCorr'))M('fCorr').onclick=()=>corrigirHorarios(o);
   /* o mesmo caminho, alcançável de onde a pessoa está olhando */
   if(M('fCorr2'))M('fCorr2').onclick=()=>corrigirHorarios(o);
+  if(M('fCorrCx'))M('fCorrCx').onclick=()=>corrigirCaixas(o);
   if(M('mEdit'))M('mEdit').onclick=()=>liberarEdicao(o);
 
   /* lista de produtos filtrável por SKU ou nome */
@@ -6210,6 +6214,79 @@ function finalizarEnvase(o){
   abrirMask();
 }
 
+/* =====================================================================
+   CORRIGIR AS CAIXAS DE UMA OP JÁ CONCLUÍDA
+   Digitar 252 no lugar de 282 muda a quebra do relatório em 30 caixas. Antes
+   o único conserto era reabrir e concluir de novo, o que enchia o histórico
+   de conclusões repetidas e reescrevia horário e motivos que estavam certos.
+   Aqui muda só o número, com autorização e rastro.
+   ===================================================================== */
+function corrigirCaixas(o){
+  const souMestre=!!(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.master);
+  const prev=caixasPrev(o), atual=o.caixas;
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Corrigir as caixas';
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${nomeCurto(o.codigo)} · ${o.maq} · lote ${o.lote||'—'}`;
+  M('mB').innerHTML=`
+    <div class="alert">Hoje estão lançadas <b>${nf(atual)} cx</b> de ${nf(prev)} previstas
+      — quebra de <b>${nf(prev-atual)} cx</b>. Mudar aqui refaz essa conta e
+      o que o relatório soma.</div>
+    <div class="g2">
+      <div class="fld"><label>Caixas produzidas <b>*</b></label>
+        <input type="number" id="ccCx" min="0" step="1" value="${atual}"></div>
+      <div class="fld"><label>Fica assim</label>
+        <div class="calc" id="ccCalc" style="margin:0"></div></div>
+    </div>
+    ${souMestre?'':`<div class="fld"><label>PIN ou senha do gestor <b>*</b></label>
+      <div class="secreto">
+        <input id="ccPin" type="password" autocomplete="off" placeholder="PIN ou senha">
+        <button type="button" class="olho" data-olho="ccPin" title="Mostrar">&#128065;</button>
+      </div>
+      <div class="hint" id="ccQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div></div>`}
+    <div class="fld"><label>Motivo <b>*</b></label>
+      <textarea id="ccMot" placeholder="Ex.: digitei 252 e o correto é 282"></textarea></div>`;
+  M('mF').innerHTML=`<div style="flex:1"></div>
+    <button class="btn" id="ccC">Voltar</button>
+    <button class="btn pri" id="ccK">Salvar correção</button>`;
+  const upd=()=>{
+    const n=+M('ccCx').value||0, q=prev-n;
+    M('ccCalc').innerHTML=n>prev
+      ? `<span class="w">Mais caixas do que o tanque rende (${nf(prev)}).</span>`
+      : `<b>${nf(n)} cx</b> de ${nf(prev)} · quebra de <b>${nf(q)} cx</b>`
+        +` (${nf(q*litrosCx(o))} L · ${nf1(prev?q/prev*100:0)}%)`;
+    if(M('ccPin')){
+      const s=autorizador(cv('ccPin').trim());
+      M('ccQuem').innerHTML=s?`<b>${s.nome}</b> autoriza.`
+        :(quemPorCredencial(cv('ccPin').trim())
+          ?'<span style="color:var(--danger)">Esta pessoa não é gestor.</span>':'');
+    }
+  };
+  ['ccCx','ccPin'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));
+  ligarOlhos();upd();
+  M('ccC').onclick=()=>abrirOrdem(o);
+  M('ccK').onclick=()=>{
+    const n=M('ccCx').value===''?null:+M('ccCx').value;
+    if(n==null){toast('Informe as caixas.',true);M('ccCx').focus();return;}
+    if(n>prev){toast(`O tanque rende ${nf(prev)} caixas.`,true);M('ccCx').focus();return;}
+    const mot=cv('ccMot').trim();
+    if(!mot){toast('Escreva o motivo da correção.',true);M('ccMot').focus();return;}
+    const quem=souMestre?{nome:(MEU_ACESSO.nome||'master')}:autorizador(cv('ccPin').trim());
+    if(!quem){toast('Informe o PIN ou a senha do gestor.',true);
+      if(M('ccPin'))M('ccPin').focus();return;}
+    if(n===atual){toast('O número é o mesmo — nada a corrigir.',true);return;}
+    const antes=atual;
+    o.caixas=n;
+    registrar(o,'Caixas corrigidas',null,
+      `${nf(antes)} → ${nf(n)} cx · quebra ${nf(prev-antes)} → ${nf(prev-n)} cx`
+      +` · por ${quem.nome} · ${mot}`);
+    agendarSalvar();fecharModal();render();
+    toast(`Corrigido para ${nf(n)} caixas.`);
+  };
+  abrirMask();
+}
+
 /* ---------- tirar a OP de 'finalizado' e devolver à produção ---------- */
 function voltarAProduzir(o){
   if(M('mAcao'))M('mAcao').innerHTML='';  M('mTit').textContent='Voltar a produzir';
@@ -6535,15 +6612,15 @@ function concluir(o){
     <div id="cDif" hidden></div>
     ${somaTurnos!=null?`<div class="fld" id="cAjBox" hidden>
       <div class="alert">Este total não bate com a soma dos turnos, que foi assinada
-        por cada operador. Para gravar diferente, é preciso o gestor.</div>
+        por cada operador. Para gravar diferente, é preciso o gestor.
+        O motivo vai nos campos abaixo.</div>
       <label>PIN ou senha do gestor <b>*</b></label>
       <div class="secreto">
         <input id="cAjPin" type="password" autocomplete="off" placeholder="PIN ou senha">
         <button type="button" class="olho" data-olho="cAjPin" title="Mostrar">&#128065;</button>
       </div>
       <div class="hint" id="cAjQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div>
-      <label style="margin-top:9px">Por que o total é diferente <b>*</b></label>
-      <input type="text" id="cAjMot" placeholder="Ex.: turno lançado a menos, recontagem"></div>`:''}
+      </div>`:''}
     <div class="calc" id="cCalc"></div>
     <div class="fld"><label>Observação</label>
       <textarea id="cObs" placeholder="O que precisa ficar registrado"></textarea></div>`;
@@ -6693,10 +6770,9 @@ function concluir(o){
       if(!quemAj){
         toast('O total difere da soma dos turnos: informe o PIN ou a senha do gestor.',true);
         if(M('cAjPin'))M('cAjPin').focus();return;}
-      const motAj=cv('cAjMot').trim();
-      if(!motAj){toast('Escreva por que o total é diferente.',true);
-        if(M('cAjMot'))M('cAjMot').focus();return;}
-      ajuste=`${nf(somaTurnos)} → ${nf(+cx)} cx · por ${quemAj.nome} · ${motAj}`;
+      /* o porquê já é dito nos motivos de quebra e na observação: pedir de novo
+         aqui só rendia respostas como "erro" e "quebra" */
+      ajuste=`${nf(somaTurnos)} → ${nf(+cx)} cx · por ${quemAj.nome}`;
     }
     const obs=M('cObs').value.trim();
     /* A quebra já é mostrada e cobrada nesta mesma tela, no bloco de motivos.
@@ -7763,7 +7839,22 @@ try{if(typeof BroadcastChannel!=='undefined')CANAL=new BroadcastChannel('pcp-atr
 function aplicarRemoto(dados){
   if(!dados)return;
   try{
+    /* aplicarEstado troca ORDENS por objetos novos. Com um modal aberto, o EDIT
+       continuava apontando para o objeto antigo: a pessoa editava, salvava, e
+       nada acontecia — as mudanças iam para uma OP que não estava mais na lista.
+       Guardando o id antes, dá para reencontrar a mesma OP depois da troca. */
+    const idAberto=(typeof EDIT!=='undefined'&&EDIT)?EDIT.id:null;
+    const travado=(typeof DESTRAVADA!=='undefined')&&DESTRAVADA;
     RECEBENDO=true;aplicarEstado(dados);ULTIMO=corpoDados();
+    if(idAberto){
+      const novo=ORDENS.find(x=>x.id===idAberto);
+      if(novo){EDIT=novo;DESTRAVADA=travado;}
+      else{
+        /* a OP sumiu no outro aparelho: fechar é melhor que editar um fantasma */
+        fecharModal();EDIT=null;
+        toast('Esta OP foi excluída em outro aparelho.',true);
+      }
+    }
     if(MODO_TV){S.ref=new Date();S.refTq=new Date();try{renderTV();}catch(e){}}
     render();
     const el=M('salvo');if(el)el.textContent=`atualizado ${relogio()}`;

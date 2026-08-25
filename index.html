@@ -1155,8 +1155,32 @@ const FUNCOES=['Operador de envase','Operador de sopro','Operador de mistura',
    ===================================================================== */
 const RT={nome:'',formacao:'',registro:'',assinatura:''};
 const opPorPin=p=>OPERADORES.find(o=>o.ativo!==false&&String(o.pin)===String(p));
-const quemAssina=()=>OPERADOR?OPERADOR.nome
-  :((MEU_ACESSO&&MEU_ACESSO.nome)||(EU&&EU.nome)||'—');
+/* quem assina pode usar o PIN de operador ou a senha da conta.
+   Assim o gestor não precisa de um segundo código só para assinar. */
+function quemPorCredencial(v){
+  const s=String(v||'').trim();
+  if(!s)return null;
+  const op=opPorPin(s);
+  if(op)return {nome:op.nome,funcao:op.funcao||op.papel,id:op.id,tipo:'operador',op:op};
+  const ac=(typeof ACESSOS!=='undefined'?ACESSOS:[])
+    .find(a=>a.ativo!==false&&a.senha&&String(a.senha)===s);
+  if(ac)return {nome:ac.nome||ac.email,funcao:ac.master?'master':(ac.funcao||''),
+    email:ac.email,master:!!ac.master,tipo:'acesso'};
+  return null;
+}
+/* o nome de quem está no sistema agora — nunca o de outra pessoa */
+function nomeDaSessao(){
+  if(typeof MEU_ACESSO!=='undefined'&&MEU_ACESSO&&MEU_ACESSO.nome)return MEU_ACESSO.nome;
+  if(typeof SESSAO!=='undefined'&&SESSAO&&SESSAO.user){
+    const u=SESSAO.user;
+    const n=(u.user_metadata&&(u.user_metadata.name||u.user_metadata.nome))||'';
+    if(n)return n;
+    if(u.email)return u.email.split('@')[0];
+  }
+  /* sem sessão: só então vale o cadastro local */
+  return (typeof SESSAO==='undefined'||!SESSAO)&&EU&&EU.nome?EU.nome:'—';
+}
+const quemAssina=()=>OPERADOR?OPERADOR.nome:nomeDaSessao();
 
 const PREF_PROD={};                       // sku -> preforma escolhida
 const preformaDe=p=>PREF_PROD[p.codigo]||frascoDe(p);
@@ -1406,6 +1430,11 @@ const JORNADA={
   'MAQ 3':['05:00','20:00'],
 };
 /* ===== usuários e permissões por tela ===== */
+/* módulos guardados até o envase e os tanques estarem redondos.
+   Para reativar, basta esvaziar esta lista. */
+const MODULOS_OFF=['sopro','rotulagem'];
+const moduloLigado=t=>!MODULOS_OFF.includes(t);
+
 const TELAS=[['inicio','Início'],['envase','Envase'],['tanques','Tanques'],['sopro','Sopro'],['rotulagem','Rotulagem'],
              ['relatorio','Relatório'],['admin','Admin']];
 const NIVEIS=[['','—'],['ver','Ver'],['editar','Editar'],['excluir','Tudo']];
@@ -1433,12 +1462,15 @@ let ADMIN_ABERTO=false;
 let EU=null;                                   /* sessão atual */
 const usuPorPin=v=>USUARIOS.find(u=>u.pin===String(v||'').trim());
 const nivel=t=>{
-  /* a permissão real vem de quem entrou no sistema; sem banco, cai no cadastro local */
+  /* a permissão vem de quem entrou. Sem cadastro de acesso, ninguém herda
+     a permissão de outra pessoa: fica sem nada até o master liberar. */
   const a=(typeof MEU_ACESSO!=='undefined')?MEU_ACESSO:null;
   if(a)return a.master?'excluir':((a.perm||{})[t]||'');
+  const logado=(typeof SESSAO!=='undefined')&&SESSAO;
+  if(logado)return '';            /* entrou, mas não está no cadastro */
   return EU?(EU.master?'excluir':(EU.perm[t]||'')):'';
 };
-const podeVer=t=>RANK[nivel(t)]>=1;
+const podeVer=t=>moduloLigado(t)&&RANK[nivel(t)]>=1;
 const podeEditar=t=>RANK[nivel(t)]>=2;
 const podeExcluir=t=>RANK[nivel(t)]>=3;
 const telaAtual=()=>S.page==='envase'?'envase':S.page;
@@ -1876,7 +1908,7 @@ function topo(conf){
   });
   const mq=M('mquem');
   if(mq){
-    const nome=(MEU_ACESSO&&MEU_ACESSO.nome)||(EU&&EU.nome)||'';
+    const nome=nomeDaSessao()==='—'?'':nomeDaSessao();
     const mail=(typeof emailDaSessao==='function'&&emailDaSessao())||'';
     mq.innerHTML=nome?`<b>${nome}</b>${mail?`<span>${mail}</span>`:''}`:'';
   }
@@ -2945,10 +2977,10 @@ function pedirPin(titulo,texto,cb){
   M('mTit').textContent=titulo;M('mSub').hidden=true;
   M('mB').innerHTML=`
     <div class="alert blue">${texto}</div>
-    <div class="fld"><label>PIN de quem está fazendo <b>*</b></label>
-      <input id="pnIn" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+    <div class="fld"><label>PIN ou senha de quem está fazendo <b>*</b></label>
+      <input id="pnIn" placeholder="••••" autocomplete="off">
       <div class="hint" id="pnDica" style="font-size:12px;color:var(--ink3);margin-top:6px">
-        ${ativos.length?'Cadastrado em Administração, aba Pessoas.'
+        ${ativos.length?'PIN do operador ou senha da conta — cadastrados em Administração, aba Pessoas.'
           :'<b style="color:var(--danger)">Nenhum operador cadastrado.</b>'}</div></div>`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
     <button class="btn" id="pnC">Voltar</button>
@@ -2959,8 +2991,8 @@ function pedirPin(titulo,texto,cb){
   };
   M('pnC').onclick=volta;
   const ok=()=>{
-    const o=opPorPin(M('pnIn').value.trim());
-    if(!o){M('pnDica').innerHTML='<b style="color:var(--danger)">PIN não encontrado.</b>';return;}
+    const o=quemPorCredencial(M('pnIn').value.trim());
+    if(!o){M('pnDica').innerHTML='<b style="color:var(--danger)">PIN ou senha não encontrados.</b>';return;}
     OPERADOR=o;
     cb(o);
   };
@@ -4014,7 +4046,7 @@ function trocarOperador(){
       Se ninguém informar o PIN, assina quem está logado
       (<b>${(MEU_ACESSO&&MEU_ACESSO.nome)||(EU&&EU.nome)||'—'}</b>).</div>
     ${ativos.length?`<div class="fld"><label>PIN do operador</label>
-      <div class="secreto"><input id="opIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="opIn" title="Mostrar">👁</button></div>
+      <div class="secreto"><input id="opIn" type="password" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="opIn" title="Mostrar">👁</button></div>
       <div class="hint" id="opDica" style="font-size:12px;color:var(--ink3);margin-top:6px">
         ${OPERADOR?`Assinando agora: <b>${OPERADOR.nome}</b>`:'Ninguém informado.'}</div></div>`
       :'<div class="alert">Nenhum operador cadastrado. Cadastre em Administração, aba Pessoas.</div>'}`;
@@ -4027,8 +4059,8 @@ function trocarOperador(){
   if(M('opSai'))M('opSai').onclick=()=>{OPERADOR=null;fecharModal();render();
     toast('Voltou a assinar quem está logado.');};
   const ok=()=>{
-    const o=opPorPin(M('opIn').value.trim());
-    if(!o){M('opDica').innerHTML='<b style="color:var(--danger)">PIN não encontrado.</b>';return;}
+    const o=quemPorCredencial(M('opIn').value.trim());
+    if(!o){M('opDica').innerHTML='<b style="color:var(--danger)">PIN ou senha não encontrados.</b>';return;}
     OPERADOR=o;fecharModal();render();toast(`Lançando como ${o.nome}.`);
   };
   if(M('opOk'))M('opOk').onclick=ok;
@@ -4704,9 +4736,11 @@ const minTurnos=o=>turnosDe(o).reduce((s,t)=>s+Math.max(0,hm(t.fim)-hm(t.ini)),0
 
 /* quem pode liberar edição do que já foi fechado */
 const ehSupervisor=op=>op&&/supervis|gestor|master/i.test(String(op.funcao||op.papel||''));
-function autorizador(pin){
-  const op=opPorPin(pin);
-  return ehSupervisor(op)?op:null;
+function autorizador(cred){
+  const q=quemPorCredencial(cred);
+  if(!q)return null;
+  if(q.tipo==='acesso')return (q.master||/gestor|supervis/i.test(q.funcao||''))?q:null;
+  return ehSupervisor(q.op)?q:null;
 }
 
 /* minutos fora da jornada da máquina naquele turno */
@@ -4754,10 +4788,10 @@ function marcarEtapa(o,et){
       <div class="fld"><label>Hora <b>*</b></label>
         <input type="time" id="etHr" step="300" value="${agora}"></div>
       <div class="fld"><label>Operador</label>
-        <input id="etPin" type="password" inputmode="numeric" maxlength="6"
-          placeholder="PIN" autocomplete="off">
+        <input id="etPin" type="password" 
+          placeholder="PIN ou senha" autocomplete="off">
         <div class="hint" id="etQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px">
-          Opcional — sem PIN, assina quem está logado.</div></div>
+          Opcional — sem isso, assina quem está logado.</div></div>
     </div>
     <div class="calc" id="etCalc"></div>`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
@@ -4781,15 +4815,15 @@ function marcarEtapa(o,et){
   };
   M('etHr').addEventListener('input',upd);upd();
   M('etPin').addEventListener('input',()=>{
-    const op=opPorPin(cv('etPin').trim());
-    M('etQuem').innerHTML=op?`<b>${op.nome}</b>`:'Opcional — sem PIN, assina quem está logado.';});
+    const op=quemPorCredencial(cv('etPin').trim());
+    M('etQuem').innerHTML=op?`<b>${op.nome}</b>`:'Opcional — sem isso, assina quem está logado.';});
   M('etC').onclick=()=>abrirOrdem(o);
   M('etK').onclick=()=>{
     const hr=cv('etHr');
     if(!hr){toast('Informe a hora.',true);return;}
     if(et==='envase'&&ref&&hm(hr)<hm(ref)){
       toast('O envase não pode começar antes do setup.',true);return;}
-    const op=opPorPin(cv('etPin').trim());
+    const op=quemPorCredencial(cv('etPin').trim());
     if(et==='setup'){o.iniReal=hr;registrar(o,'Setup iniciado',op,hr);}
     else{
       if(!o.iniReal)o.iniReal=hr;      /* sem setup, a OP começa no envase */
@@ -4824,9 +4858,9 @@ function corrigirHorarios(o){
         <input type="time" id="chFim" step="300" value="${o.fimReal||''}"></div>
     </div>
     <div class="calc" id="chCalc"></div>
-    ${(fim&&!souMestre)?`<div class="fld"><label>PIN do supervisor <b>*</b></label>
+    ${(fim&&!souMestre)?`<div class="fld"><label>PIN ou senha do supervisor <b>*</b></label>
       <div class="secreto">
-        <input id="chPin" type="password" inputmode="numeric" maxlength="6"
+        <input id="chPin" type="password" 
           placeholder="••••" autocomplete="off">
         <button type="button" class="olho" data-olho="chPin" title="Mostrar">&#128065;</button>
       </div>
@@ -4852,13 +4886,13 @@ function corrigirHorarios(o){
   if(M('chPin'))M('chPin').addEventListener('input',()=>{
     const s=autorizador(cv('chPin').trim());
     M('chQuem').innerHTML=s?`<b>${s.nome}</b> · ${s.funcao||s.papel}`
-      :(opPorPin(cv('chPin').trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
+      :(quemPorCredencial(cv('chPin').trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
   });
   const liberar=()=>{
     if(!fim)return {nome:quemAssina()};
     if(souMestre)return {nome:(MEU_ACESSO.nome||'master')};
     const s=autorizador(cv('chPin').trim());
-    if(!s){toast('Precisa do PIN de um supervisor.',true);return null;}
+    if(!s){toast('Precisa do PIN ou da senha de um supervisor.',true);return null;}
     return s;
   };
   const aplicar=(novo,rotulo)=>{
@@ -4962,9 +4996,9 @@ function fecharTurno(o){
       <div class="fld"><label>Caixas neste turno <b>*</b></label>
         <input type="number" id="tCx" min="0" step="1" placeholder="${nf(faltam)}"></div>
       <div class="fld"><label>Operador <b>*</b></label>
-        <div class="secreto"><input id="tPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off"><button type="button" class="olho" data-olho="tPin" title="Mostrar">👁</button></div>
+        <div class="secreto"><input id="tPin" type="password" placeholder="PIN ou senha" autocomplete="off"><button type="button" class="olho" data-olho="tPin" title="Mostrar">👁</button></div>
         <div class="hint" id="tQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px">
-          Informe o PIN de quem trabalhou neste turno.</div></div>
+          Informe o PIN do operador ou a senha da conta.</div></div>
     </div>
     <div class="calc" id="tCalc"></div>`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
@@ -4989,19 +5023,19 @@ function fecharTurno(o){
   };
   ['tCx','tIni','tFim'].forEach(i=>M(i)&&M(i).addEventListener('input',upd));upd();
   M('tPin').addEventListener('input',()=>{
-    const op=opPorPin(M('tPin').value.trim());
+    const op=quemPorCredencial(M('tPin').value.trim());
     M('tQuem').innerHTML=op?`<b>${op.nome}</b> · ${op.funcao||op.papel||''}`
-      :'Informe o PIN de quem trabalhou neste turno.';
+      :'Informe o PIN do operador ou a senha da conta.';
   });
   M('tC').onclick=()=>abrirOrdem(o);
   M('tK').onclick=()=>{
     const dt=M('tDt').value,i=M('tIni').value,f=M('tFim').value;
     const cx=M('tCx').value===''?null:+M('tCx').value;
-    const op=opPorPin(M('tPin').value.trim());
+    const op=quemPorCredencial(M('tPin').value.trim());
     if(!dt||!i||!f){toast('Informe dia, início e fim.',true);return;}
     if(hm(f)<=hm(i)){toast('O fim precisa ser depois do início.',true);return;}
     if(cx==null){toast('Informe as caixas deste turno.',true);M('tCx').focus();return;}
-    if(!op){toast('PIN não encontrado.',true);M('tPin').focus();return;}
+    if(!op){toast('PIN ou senha não encontrados.',true);M('tPin').focus();return;}
     turnosDe(o).push({data:dt,ini:i,fim:f,caixas:cx,operador:op.nome,opId:op.id,
       em:relogio(),emDia:ymd(new Date())});
     aplicarTurnos(o);
@@ -5206,8 +5240,8 @@ function liberarEdicao(o){
     <div class="alert">Esta OP já foi concluída. Editar mexe em produção fechada,
       então precisa de <b>autorização de supervisor</b> e do motivo — os dois ficam no histórico.</div>
     ${souMestre?'<div class="alert blue">Você está logado como master — basta o motivo.</div>'
-      :`<div class="fld"><label>PIN do supervisor <b>*</b></label>
-        <div class="secreto"><input id="lePin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="lePin" title="Mostrar">👁</button></div>
+      :`<div class="fld"><label>PIN ou senha do supervisor <b>*</b></label>
+        <div class="secreto"><input id="lePin" type="password" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="lePin" title="Mostrar">👁</button></div>
         <div class="hint" id="leQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div></div>`}
     <div class="fld"><label>Motivo <b>*</b></label>
       <textarea id="leMot" placeholder="O que precisa ser corrigido e por quê"></textarea></div>`;
@@ -5217,7 +5251,7 @@ function liberarEdicao(o){
   if(M('lePin'))M('lePin').addEventListener('input',()=>{
     const s=autorizador(M('lePin').value.trim());
     M('leQuem').innerHTML=s?`<b>${s.nome}</b> · ${s.funcao||s.papel}`
-      :(opPorPin(M('lePin').value.trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
+      :(quemPorCredencial(M('lePin').value.trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
   });
   M('leC').onclick=()=>abrirOrdem(o);
   M('leK').onclick=()=>{
@@ -5227,7 +5261,7 @@ function liberarEdicao(o){
     if(souMestre)quem={nome:MEU_ACESSO.nome||'master'};
     else{
       quem=autorizador(M('lePin').value.trim());
-      if(!quem){toast('Precisa do PIN de um supervisor.',true);M('lePin').focus();return;}
+      if(!quem){toast('Precisa do PIN ou da senha de um supervisor.',true);M('lePin').focus();return;}
     }
     registrar(o,'Edição liberada',null,`autorizado por ${quem.nome} · ${mot}`);
     DESTRAVADA=true;agendarSalvar();abrirOrdem(o);
@@ -5248,8 +5282,8 @@ function corrigirTurno(o,i){
     <div class="alert">Turno já fechado. Corrigir mexe no que outra pessoa registrou,
       então precisa de <b>autorização de supervisor</b> e fica no histórico com o nome de quem liberou.</div>
     ${souMestre?'<div class="alert blue">Você está logado como master — pode corrigir direto.</div>'
-      :`<div class="fld"><label>PIN do supervisor <b>*</b></label>
-        <div class="secreto"><input id="cPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="cPin" title="Mostrar">👁</button></div>
+      :`<div class="fld"><label>PIN ou senha do supervisor <b>*</b></label>
+        <div class="secreto"><input id="cPin" type="password" placeholder="••••" autocomplete="off"><button type="button" class="olho" data-olho="cPin" title="Mostrar">👁</button></div>
         <div class="hint" id="cQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div></div>`}
     <div class="g3">
       <div class="fld"><label>Início</label><input type="time" id="cIni" step="300" value="${t.ini}"></div>
@@ -5266,12 +5300,12 @@ function corrigirTurno(o,i){
   if(M('cPin'))M('cPin').addEventListener('input',()=>{
     const s=autorizador(M('cPin').value.trim());
     M('cQuem').innerHTML=s?`<b>${s.nome}</b> · ${s.funcao||s.papel}`
-      :(opPorPin(M('cPin').value.trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
+      :(quemPorCredencial(M('cPin').value.trim())?'<span style="color:var(--danger)">Esta pessoa não é supervisor.</span>':'');
   });
   const liberar=()=>{
     if(souMestre)return {nome:(MEU_ACESSO.nome||'master')};
     const s=autorizador(M('cPin').value.trim());
-    if(!s){toast('Precisa do PIN de um supervisor.',true);return null;}
+    if(!s){toast('Precisa do PIN ou da senha de um supervisor.',true);return null;}
     return s;
   };
   M('cC').onclick=()=>abrirOrdem(o);
@@ -6619,22 +6653,22 @@ function modalAjuste(b){
     <div class="fld"><label>Motivo <b>*</b></label>
       <textarea id="ajMot" placeholder="Ex.: pH abaixo da faixa, corrigido com soda"></textarea></div>
     <div class="fld"><label>Operador</label>
-      <div class="secreto"><input id="ajPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off"><button type="button" class="olho" data-olho="ajPin" title="Mostrar">👁</button></div>
+      <div class="secreto"><input id="ajPin" type="password" placeholder="PIN ou senha" autocomplete="off"><button type="button" class="olho" data-olho="ajPin" title="Mostrar">👁</button></div>
       <div class="hint" id="ajQuem" style="font-size:11.5px;color:var(--ink3);margin-top:4px">
-        Opcional — sem PIN, assina quem está logado.</div></div>`;
+        Opcional — sem isso, assina quem está logado.</div></div>`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
     <button class="btn" id="ajC">Voltar</button>
     <button class="btn pri" id="ajK">Acrescentar</button></div>`;
   M('ajPin').addEventListener('input',()=>{
-    const op=opPorPin(M('ajPin').value.trim());
-    M('ajQuem').innerHTML=op?`<b>${op.nome}</b>`:'Opcional — sem PIN, assina quem está logado.';});
+    const op=quemPorCredencial(M('ajPin').value.trim());
+    M('ajQuem').innerHTML=op?`<b>${op.nome}</b>`:'Opcional — sem isso, assina quem está logado.';});
   M('ajC').onclick=()=>abrirLote(b);
   M('ajK').onclick=()=>{
     const nome=M('ajNome').value.trim(), qtd=+M('ajQtd').value||0, mot=M('ajMot').value.trim();
     if(!nome){toast('Informe o insumo.',true);return;}
     if(qtd<=0){toast('Informe a quantidade.',true);M('ajQtd').focus();return;}
     if(!mot){toast('Escreva o motivo do ajuste.',true);M('ajMot').focus();return;}
-    const op=opPorPin(M('ajPin').value.trim());
+    const op=quemPorCredencial(M('ajPin').value.trim());
     const at=APONTA[b.chave]||{};
     const linha={nome:nome,kg:qtd,un:cv('ajUn')||'kg',motivo:mot,
       quem:(op&&op.nome)||quemAssina(),em:relogio(),dia:ymd(new Date())};
@@ -7613,6 +7647,8 @@ async function lerAcessos(){
   ACESSOS=await r.json();
   const meu=emailDaSessao().toLowerCase();
   MEU_ACESSO=ACESSOS.find(a=>a.email===meu)||null;
+  /* o topo precisa saber de quem é a sessão assim que o cadastro chega */
+  try{M('quem').querySelector('b').textContent=nomeDaSessao()==='—'?'':nomeDaSessao();}catch(e){}
   return ACESSOS;
 }
 async function gravarAcesso(linha,novo,email){
@@ -7707,100 +7743,55 @@ async function gradeAcessos(){
    Sem a função no servidor, o sistema explica em vez de fingir que consegue. */
 async function redefinirSenha(email){
   const a=ACESSOS.find(x=>x.email===email);if(!a)return;
-  const nova=gerarSenha();
   if(M('mAcao'))M('mAcao').innerHTML='';
-  M('mTit').textContent='Redefinir senha';M('mSub').hidden=false;M('mSub').textContent=a.nome;
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Senha de '+(a.nome||a.email);
+  M('mSub').hidden=false;M('mSub').textContent=a.email;
   M('mB').innerHTML=`
-    <div class="alert blue"><b>Nova senha:</b> <span class="sen">${nova}</span><br>
-      Anote antes de confirmar. Ela passa a valer no lugar da anterior.</div>
+    <div class="fld"><label>Senha <b>*</b></label>
+      <div class="secreto">
+        <input id="rsIn" type="password" value="${escAttr(a.senha||'')}" autocomplete="off"
+          placeholder="mínimo 6 caracteres">
+        <button type="button" class="olho" data-olho="rsIn" title="Mostrar">&#128065;</button>
+        <button type="button" class="btn sm" id="rsGera">Gerar</button>
+      </div>
+      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin-top:5px">
+        Vale para entrar no sistema e também para assinar lançamentos,
+        no lugar do PIN de operador.</div></div>
     ${SENHA_SERVIDOR?'':`<div class="alert">
-      <b>Ainda não está ligado.</b> Trocar a senha de outra pessoa é uma operação
-      privilegiada e precisa de uma peça no servidor, que ainda não foi instalada.
-      Enquanto isso, a pessoa pode entrar com a senha que consta na lista.</div>`}`;
+      <b>Atenção.</b> Isto grava a senha aqui no cadastro. A senha de <i>entrada</i>
+      no sistema só muda quando a peça do servidor for instalada — até lá, se a pessoa
+      já trocou a dela, ela continua entrando com a que escolheu, mas assina com esta.</div>`}`;
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
     <button class="btn" id="rsC">Fechar</button>
-    ${SENHA_SERVIDOR?'<button class="btn pri" id="rsK">Confirmar</button>':''}</div>`;
+    <button class="btn pri" id="rsK">Salvar</button></div>`;
+  ligarOlhos();
+  M('rsGera').onclick=()=>{M('rsIn').value=gerarSenha();M('rsIn').type='text';};
   M('rsC').onclick=fecharModal;
-  if(M('rsK'))M('rsK').onclick=async()=>{
-    M('rsK').disabled=true;M('rsK').textContent='Trocando…';
+  M('rsK').onclick=async()=>{
+    const nova=cv('rsIn').trim();
+    if(nova.length<6){toast('A senha precisa de pelo menos 6 caracteres.',true);return;}
+    const igual=ACESSOS.find(x=>x.email!==a.email&&x.senha&&x.senha===nova);
+    if(igual){toast(`Essa senha já é de ${igual.nome||igual.email}. Use outra.`,true);return;}
+    if(opPorPin(nova)){toast('Essa senha é igual ao PIN de um operador. Use outra.',true);return;}
+    M('rsK').disabled=true;M('rsK').textContent='Salvando…';
     try{
-      const r=await fetch(`${SUPA.url}/functions/v1/redefinir-senha`,{
-        method:'POST',headers:cabecalhos(),body:JSON.stringify({email:email,senha:nova})});
-      const d=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(d.erro||d.message||'falha ao redefinir');
-      await gravarAcesso({senha_inicial:nova},false,email);
-      fecharModal();await gradeAcessos();
-      toast(`Senha de ${a.nome} redefinida · ${nova}`);
-    }catch(e){M('rsK').disabled=false;M('rsK').textContent='Confirmar';toast(e.message,true);}
-  };
-  abrirMask();
-}
-
-function modalAcesso(a){
-  const novo=!a;
-  if(M('mAcao'))M('mAcao').innerHTML='';
-  M('mTit').textContent=novo?'Nova pessoa':'Editar acesso';
-  M('mSub').hidden=novo;if(!novo)M('mSub').textContent=a.email;
-  const senha=novo?gerarSenha():'';
-  M('mB').innerHTML=`
-    <div class="fld"><label>Nome <b>*</b></label>
-      <input id="acNome" value="${novo?'':a.nome}" placeholder="Nome e sobrenome"></div>
-    <div class="fld"><label>E-mail <b>*</b></label>
-      <input id="acMail" type="email" value="${novo?'':a.email}" ${novo?'':'disabled'}
-        placeholder="nome@atrius.ind.br"></div>
-    ${novo?`<div class="fld"><label>Senha <b>*</b></label>
-      <div class="senhal">
-        <input id="acSenha" type="password" value="${senha}" autocomplete="off"><button type="button" class="olho" data-olho="acSenha" title="Mostrar">👁</button>
-        <button type="button" class="btn sm" id="acGera">Gerar outra</button>
-      </div>
-      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin-top:4px">
-        O sistema sugeriu uma, mas você pode trocar. Mínimo de 6 caracteres.
-        Anote e entregue — fica visível na lista até a pessoa trocar.</div></div>`:''}
-    <div class="fld"><label>Nível</label>
-      <select id="acNivel">
-        <option value="0" ${novo||!a.master?'selected':''}>Operação — usa o sistema</option>
-        <option value="1" ${!novo&&a.master?'selected':''}>Master — também cadastra pessoas</option>
-      </select></div>
-    ${novo?'':`<div class="fld"><label>Situação</label>
-      <select id="acAtivo">
-        <option value="1" ${a.ativo?'selected':''}>Ativo</option>
-        <option value="0" ${a.ativo?'':'selected'}>Inativo — não entra mais</option>
-      </select></div>`}`;
-  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
-    <button class="btn" id="acC">Fechar</button>
-    <button class="btn pri" id="acK">${novo?'Cadastrar':'Salvar'}</button></div>`;
-  if(M('acGera'))M('acGera').onclick=()=>{M('acSenha').value=gerarSenha();};
-  M('acC').onclick=fecharModal;
-  M('acK').onclick=async()=>{
-    const nome=M('acNome').value.trim();
-    const email=(novo?M('acMail').value:a.email).trim().toLowerCase();
-    if(!nome){toast('Informe o nome.',true);return;}
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast('E-mail inválido.',true);return;}
-    const pw=novo?(M('acSenha')?M('acSenha').value.trim():senha):null;
-    if(novo&&(!pw||pw.length<6)){toast('A senha precisa de ao menos 6 caracteres.',true);return;}
-    M('acK').disabled=true;M('acK').textContent='Gravando…';
-    try{
-      if(novo){
-        const r=await criarConta(email,pw);
-        await gravarAcesso({email:email,nome:nome,master:M('acNivel').value==='1',
-          ativo:true,senha_inicial:pw,criado_por:emailDaSessao()},true);
-        fecharModal();await gradeAcessos();
-        toast(r.jaExistia
-          ?`${nome} já tinha conta — liberado o acesso, senha continua a que ela usava.`
-          :`${nome} cadastrado · senha ${pw}`);
-      }else{
-        await gravarAcesso({nome:nome,master:M('acNivel').value==='1',
-          ativo:M('acAtivo').value==='1'},false,a.email);
-        fecharModal();await gradeAcessos();toast('Acesso atualizado.');
+      await gravarAcesso({senha:nova},false,a.email);
+      a.senha=nova;
+      if(SENHA_SERVIDOR){
+        const r=await fetch(`${SUPA.url}/functions/v1/redefinir-senha`,{
+          method:'POST',headers:cabecalhos(),
+          body:JSON.stringify({email:a.email,senha:nova})});
+        if(!r.ok)throw new Error('senha gravada no cadastro, mas a de entrada não trocou');
       }
+      fecharModal();gradeAcessos();toast('Senha atualizada.');
     }catch(e){
-      M('acK').disabled=false;M('acK').textContent=novo?'Cadastrar':'Salvar';
       toast(e.message,true);
+      M('rsK').disabled=false;M('rsK').textContent='Salvar';
     }
   };
   abrirMask();
 }
-
 async function excluirAcesso(email){
   if(email===emailDaSessao().toLowerCase()){
     toast('Você não pode excluir o próprio acesso.',true);return;}
@@ -8120,11 +8111,11 @@ function entrar(u){
   render();
 }
 
-/* sem senha por enquanto: entra como master; as pessoas são cadastradas na Administração */
+/* fora do banco, o sistema abre no cadastro local; com login, quem manda é a sessão */
 semearRecursos();sincronizarRecursos();semearPreformas();
-EU=USUARIOS[0];
+if(!temNuvem())EU=USUARIOS[0];
 try{
-  M('quem').querySelector('b').textContent=EU.nome;
+  M('quem').querySelector('b').textContent=nomeDaSessao()==='—'?'':nomeDaSessao();
 }catch(e){}
 if(M('assina'))M('assina').onclick=trocarOperador;
 try{const r0=lerRota(location.hash);if(r0&&!MODO_TV){S.page=r0.page;
@@ -8159,6 +8150,9 @@ function lerRota(h){
 /* troca a tela sem empurrar no histórico de novo */
 function aplicarRota(r){
   if(!r)return;
+  /* módulo guardado: o endereço não leva a ele */
+  if(!moduloLigado(r.page)){S.page='envase';S.view='dia';
+    try{render();}catch(e){}return;}
   VOLTANDO=true;
   S.page=r.page;
   if(r.page==='admin'&&r.aba&&typeof ABA_ADMIN!=='undefined')ABA_ADMIN=r.aba;

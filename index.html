@@ -521,6 +521,10 @@ body.tv .bat{cursor:default}
   padding:9px 12px;font-size:12.5px;line-height:1.45;margin-bottom:10px}
 .lgerro[hidden]{display:none!important}
 .lgpe{font-size:11.5px;color:var(--ink3);margin-top:14px;text-align:center;line-height:1.45}
+.chk{display:flex;gap:9px;align-items:flex-start;margin-bottom:10px;cursor:pointer;
+  font-size:12.5px;line-height:1.45;color:var(--ink2)}
+.chk input{width:16px;height:16px;margin:1px 0 0;flex-shrink:0;cursor:pointer;accent-color:var(--ink)}
+.chk b{font-weight:600;color:var(--ink)}
 
 /* ---------- marca ---------- */
 .top .logo{height:26px;width:auto;display:block;flex-shrink:0}
@@ -1026,9 +1030,15 @@ table.cpr td.e{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;co
       <input type="email" id="lgMail" autocomplete="username" placeholder="nome@atrius.com.br"></div>
     <div class="fld"><label>Senha</label>
       <input type="password" id="lgSenha" autocomplete="current-password"></div>
+    <label class="chk" style="margin:2px 0 12px"><input type="checkbox" id="lgLembrar" checked>
+      <span>Guardar meu e-mail neste aparelho</span></label>
     <div class="lgerro" id="lgErro" hidden></div>
     <button class="btn pri" id="lgK">Entrar</button>
-    <div class="lgpe">Esqueceu a senha? Peça ao administrador do sistema.</div>
+    <button class="btn" id="lgEsq" style="width:100%;justify-content:center;margin-top:8px">Esqueci minha senha</button>
+    <div class="lgpe" id="lgAjuda" hidden>
+      Quem administra o PCP gera uma senha nova para você em
+      <b>Administração &rarr; Pessoas</b> e entrega na hora — não vai e-mail nenhum.
+      Chame o Junior.</div>
   </div>
 </div>
 
@@ -1173,6 +1183,9 @@ const FUNCOES=['Operador de envase','Operador de sopro','Operador de mistura',
    ===================================================================== */
 const RT={nome:'',formacao:'',registro:'',assinatura:''};
 const opPorPin=p=>OPERADORES.find(o=>o.ativo!==false&&String(o.pin)===String(p));
+/* e-mail sempre comparado do mesmo jeito: sem espaço e em minúscula.
+   Uma maiúscula no cadastro já bastou para a pessoa entrar e não ver nada. */
+const norMail=e=>String(e||'').trim().toLowerCase();
 /* quem assina pode usar o PIN de operador ou a senha da conta.
    Assim o gestor não precisa de um segundo código só para assinar. */
 function quemPorCredencial(v){
@@ -4707,6 +4720,8 @@ function ligarOlhos(){
 /* entrou no sistema, mas o e-mail não está liberado: explica em vez de
    deixar a tela vazia sem dizer nada */
 function semAcesso(){
+  /* dois caminhos chamam esta tela; ela não pode empilhar */
+  if(document.querySelector('.semacesso'))return;
   const el=document.createElement('div');
   el.className='semacesso';
   el.innerHTML=`<div class="sacx">
@@ -7644,26 +7659,44 @@ function ligarPolling(){
 }
 
 /* ---------- tela de login ---------- */
+const LEMBRA_MAIL='pcp-atrius-email';
 function telaLogin(msg){
   const el=M('login');if(!el)return;
   el.hidden=false;
   M('lgErro').textContent=msg||'';
   M('lgErro').hidden=!msg;
+  /* o e-mail volta sozinho; a senha nunca fica guardada */
+  try{
+    const g=localStorage.getItem(LEMBRA_MAIL);
+    if(g&&!M('lgMail').value){M('lgMail').value=g;M('lgSenha').focus();}
+    M('lgLembrar').checked=!!g;
+  }catch(e){}
   const ir=async()=>{
-    const e=M('lgMail').value.trim(),s=M('lgSenha').value;
+    const e=norMail(M('lgMail').value),s=M('lgSenha').value;
     if(!e||!s){telaLogin('Informe e-mail e senha.');return;}
     M('lgK').disabled=true;M('lgK').textContent='Entrando…';
     try{
       await autenticar(e,s);
+      try{ M('lgLembrar').checked?localStorage.setItem(LEMBRA_MAIL,e)
+                                 :localStorage.removeItem(LEMBRA_MAIL); }catch(x){}
       el.hidden=true;
       await iniciarComNuvem();
     }catch(err){
       M('lgK').disabled=false;M('lgK').textContent='Entrar';
-      telaLogin(err.message);
+      /* o Supabase responde isto em ingles e sem contexto: traduz */
+      const t=String(err.message||'').toLowerCase();
+      telaLogin(
+        t.indexOf('not confirmed')>=0
+          ? 'Esta conta ainda não foi confirmada. Peça ao administrador para liberar.'
+        : t.indexOf('invalid')>=0
+          ? 'E-mail ou senha não conferem.'
+          : err.message);
     }
   };
   M('lgK').onclick=ir;
   M('lgSenha').onkeydown=ev=>{if(ev.key==='Enter')ir();};
+  M('lgMail').onkeydown=ev=>{if(ev.key==='Enter')M('lgSenha').focus();};
+  M('lgEsq').onclick=()=>{M('lgAjuda').hidden=!M('lgAjuda').hidden;};
 }
 
 
@@ -7689,14 +7722,15 @@ async function lerAcessos(){
   if(r.status===401){ if(await renovarSessao())return lerAcessos(); throw new Error('sessão expirada'); }
   if(!r.ok)throw new Error('não consegui ler os acessos ('+r.status+')');
   ACESSOS=await r.json();
-  const meu=emailDaSessao().toLowerCase();
-  MEU_ACESSO=ACESSOS.find(a=>a.email===meu)||null;
+  const meu=norMail(emailDaSessao());
+  MEU_ACESSO=ACESSOS.find(a=>norMail(a.email)===meu)||null;
   /* o topo precisa saber de quem é a sessão assim que o cadastro chega */
   try{M('quem').querySelector('b').textContent=nomeDaSessao()==='—'?'':nomeDaSessao();}catch(e){}
   return ACESSOS;
 }
 async function gravarAcesso(linha,novo,email){
-  const alvo=email||linha.email;
+  if(linha&&linha.email)linha={...linha,email:norMail(linha.email)};
+  const alvo=norMail(email||(linha&&linha.email));
   const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso`+(novo?'':`?email=eq.${encodeURIComponent(alvo)}`),{
     method:novo?'POST':'PATCH',
     headers:cabecalhos({'Prefer':'return=representation'}),
@@ -7754,9 +7788,9 @@ async function gradeAcessos(){
     ${ACESSOS.map(a=>`<tr class="${a.ativo?'':'inat'}">
       <td><b>${a.nome}</b>${a.master?' <span class="pill ok">master</span>':''}</td>
       <td class="mono">${a.email}</td>
-      <td class="mono">${a.senha_inicial
-        ?`<span class="sen">${a.senha_inicial}</span>`
-        :'<span class="k">trocada pela pessoa</span>'}</td>
+      <td class="mono">${a.senha
+        ?`<span class="sen">${escAttr(a.senha)}</span>`
+        :'<span class="k">sem senha definida</span>'}</td>
       ${TELAS.map(t=>`<td>${selNivel(a,t[0])}</td>`).join('')}
       <td>${a.ativo?'ativo':'<span class="k">inativo</span>'}</td>
       <td style="text-align:right;white-space:nowrap">
@@ -7783,6 +7817,124 @@ async function gradeAcessos(){
   }));
 }
 
+
+/* =====================================================================
+   CADASTRO DE UMA PESSOA
+   Esta funcao era chamada em tres lugares e nao existia no arquivo:
+   o botao "+ Nova pessoa" e o lapis de editar nao faziam nada, sem erro
+   na tela. E o motivo de ninguem novo conseguir ser cadastrado.
+   ===================================================================== */
+async function modalAcesso(a){
+  const novo=!a;
+  a=a||{nome:'',email:'',funcao:'',master:false,ativo:true,perm:{}};
+  const perm={...(a.perm||{})};
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent=novo?'Nova pessoa':'Editar acesso';
+  M('mSub').hidden=!novo&&!a.email;
+  M('mSub').textContent=novo?'Conta de entrada e permissões por tela':a.email;
+  M('mB').innerHTML=`
+    <div class="g2">
+      <div class="fld"><label>Nome <b>*</b></label>
+        <input type="text" id="acNome" value="${escAttr(a.nome||'')}"
+          placeholder="Como aparece no histórico"></div>
+      <div class="fld"><label>Função</label>
+        <input type="text" id="acFun" value="${escAttr(a.funcao||'')}"
+          placeholder="Qualidade, PCP, produção…"></div>
+    </div>
+    <div class="fld"><label>E-mail <b>*</b></label>
+      <input type="email" id="acMail" value="${escAttr(a.email||'')}"
+        placeholder="nome@atrius.ind.br" ${novo?'':'disabled'}>
+      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin-top:5px">
+        ${novo?'Vira a conta de entrada. Sempre em minúsculas.'
+              :'O e-mail não muda: é ele que liga a conta ao cadastro. Para trocar, exclua e cadastre de novo.'}</div></div>
+    <div class="fld"><label>Senha ${novo?'<b>*</b>':''}</label>
+      <div class="secreto">
+        <input id="acSen" type="password" value="${escAttr(a.senha||'')}" autocomplete="new-password"
+          placeholder="mínimo 8 caracteres">
+        <button type="button" class="olho" data-olho="acSen" title="Mostrar">&#128065;</button>
+        <button type="button" class="btn sm" id="acGera">Gerar</button>
+      </div>
+      <div class="hint" style="font-size:11.5px;color:var(--ink3);margin-top:5px">
+        Serve para entrar e para assinar lançamentos, no lugar do PIN de operador.
+        ${novo?'':'Deixe como está para não mexer na senha.'}</div></div>
+    <label class="chk"><input type="checkbox" id="acAtivo" ${a.ativo!==false?'checked':''}>
+      <span><b>Ativo</b> — pode entrar no sistema</span></label>
+    <label class="chk"><input type="checkbox" id="acMaster" ${a.master?'checked':''}>
+      <span><b>Master</b> — enxerga tudo e cadastra pessoas</span></label>
+    <p class="adp" style="margin-top:14px">O que esta pessoa faz em cada tela.
+      Tela sem nível não aparece no menu dela.</p>
+    <table class="tb"><tbody id="acPerm">
+      ${TELAS.map(t=>`<tr>
+        <td><b>${t[1]}</b></td>
+        <td style="text-align:right">
+          <select class="np" data-tela="${t[0]}">
+            ${NIVEIS.map(([k,r])=>`<option value="${k}" ${(perm[t[0]]||'')===k?'selected':''}>${r}</option>`).join('')}
+          </select></td></tr>`).join('')}
+    </tbody></table>`;
+  M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
+    <button class="btn" id="acC">Voltar</button>
+    <button class="btn pri" id="acK">${novo?'Cadastrar':'Salvar'}</button></div>`;
+  ligarOlhos();
+  const travar=()=>{
+    const m=M('acMaster').checked;
+    M('acPerm').querySelectorAll('select.np').forEach(s=>{
+      s.disabled=m; if(m)s.value='excluir';});
+  };
+  M('acMaster').addEventListener('change',travar); travar();
+  M('acGera').onclick=()=>{M('acSen').value=gerarSenha();M('acSen').type='text';};
+  M('acC').onclick=fecharModal;
+  M('acK').onclick=async()=>{
+    const nome=cv('acNome').trim(), mail=norMail(cv('acMail')), sen=cv('acSen').trim();
+    if(!nome){toast('Informe o nome.',true);M('acNome').focus();return;}
+    if(!mail||mail.indexOf('@')<0){toast('Informe um e-mail válido.',true);M('acMail').focus();return;}
+    if(novo&&ACESSOS.some(x=>norMail(x.email)===mail)){
+      toast('Já existe cadastro com esse e-mail.',true);return;}
+    if(sen){
+      if(sen.length<8){toast('A senha precisa de pelo menos 8 caracteres.',true);M('acSen').focus();return;}
+      /* senha repetida faz a assinatura apontar para a pessoa errada no histórico */
+      const igual=ACESSOS.find(x=>norMail(x.email)!==mail&&x.senha&&x.senha===sen);
+      if(igual){toast(`Essa senha já é de ${igual.nome||igual.email}. Use outra.`,true);return;}
+      if(opPorPin(sen)){toast('Essa senha é igual ao PIN de um operador. Use outra.',true);return;}
+    }else if(novo){toast('Defina uma senha para a pessoa entrar.',true);M('acSen').focus();return;}
+    const master=M('acMaster').checked;
+    const p={};
+    M('acPerm').querySelectorAll('select.np').forEach(s=>{if(s.value)p[s.dataset.tela]=s.value;});
+    const linha={nome:nome,email:mail,funcao:cv('acFun').trim(),
+      master:master,ativo:M('acAtivo').checked,perm:master?{}:p};
+    if(sen)linha.senha=sen;
+    M('acK').disabled=true;M('acK').textContent='Salvando…';
+    try{
+      let recado='';
+      if(novo){
+        /* a conta de entrada e o cadastro são coisas diferentes: sem a conta a
+           pessoa não passa do login, sem o cadastro ela entra e não vê nada */
+        const r=await criarConta(mail,sen);
+        if(r.jaExistia)recado=' A conta já existia — a senha dela continua a antiga.';
+        await gravarAcesso(linha,true);
+      }else{
+        await gravarAcesso(linha,false,a.email);
+        if(sen&&sen!==a.senha){
+          try{
+            const r=await fetch(`${SUPA.url}/functions/v1/redefinir-senha`,{
+              method:'POST',headers:cabecalhos(),
+              body:JSON.stringify({email:mail,senha:sen})});
+            if(!r.ok)recado=' A senha de entrada não trocou: '+(r.status===404
+              ?'a peça do servidor ainda não está instalada.'
+              :((await r.json().catch(()=>({}))).erro||('erro '+r.status)));
+          }catch(e){recado=' Não consegui falar com o servidor para trocar a senha de entrada.';}
+        }
+      }
+      fecharModal();await gradeAcessos();
+      toast((novo?`${nome} cadastrado.`:`${nome} salvo.`)+recado,!!recado);
+    }catch(e){
+      toast(e.message||'não consegui gravar',true);
+      M('acK').disabled=false;M('acK').textContent=novo?'Cadastrar':'Salvar';
+    }
+  };
+  abrirMask();
+}
+
 /* Redefinir senha exige uma chave privilegiada, que nunca pode estar no navegador.
    Sem a função no servidor, o sistema explica em vez de fingir que consegue. */
 async function redefinirSenha(email){
@@ -7795,7 +7947,7 @@ async function redefinirSenha(email){
     <div class="fld"><label>Senha <b>*</b></label>
       <div class="secreto">
         <input id="rsIn" type="password" value="${escAttr(a.senha||'')}" autocomplete="off"
-          placeholder="mínimo 6 caracteres">
+          placeholder="mínimo 8 caracteres">
         <button type="button" class="olho" data-olho="rsIn" title="Mostrar">&#128065;</button>
         <button type="button" class="btn sm" id="rsGera">Gerar</button>
       </div>
@@ -7814,7 +7966,9 @@ async function redefinirSenha(email){
   M('rsC').onclick=fecharModal;
   M('rsK').onclick=async()=>{
     const nova=cv('rsIn').trim();
-    if(nova.length<6){toast('A senha precisa de pelo menos 6 caracteres.',true);return;}
+    /* oito, não seis: é o mínimo que a função do servidor aceita. Com seis
+       a senha gravava no cadastro e a de entrada era recusada, sem explicação. */
+    if(nova.length<8){toast('A senha precisa de pelo menos 8 caracteres.',true);return;}
     const igual=ACESSOS.find(x=>x.email!==a.email&&x.senha&&x.senha===nova);
     if(igual){toast(`Essa senha já é de ${igual.nome||igual.email}. Use outra.`,true);return;}
     if(opPorPin(nova)){toast('Essa senha é igual ao PIN de um operador. Use outra.',true);return;}
@@ -7822,13 +7976,21 @@ async function redefinirSenha(email){
     try{
       await gravarAcesso({senha:nova},false,a.email);
       a.senha=nova;
-      if(SENHA_SERVIDOR){
+      /* tenta sempre. Se a função não estiver instalada o Supabase devolve 404,
+         e aí o sistema diz o que faltou em vez de fingir que trocou tudo. */
+      let entrada=false,recado='';
+      try{
         const r=await fetch(`${SUPA.url}/functions/v1/redefinir-senha`,{
           method:'POST',headers:cabecalhos(),
-          body:JSON.stringify({email:a.email,senha:nova})});
-        if(!r.ok)throw new Error('senha gravada no cadastro, mas a de entrada não trocou');
-      }
-      fecharModal();gradeAcessos();toast('Senha atualizada.');
+          body:JSON.stringify({email:norMail(a.email),senha:nova})});
+        if(r.ok)entrada=true;
+        else if(r.status===404)recado='a peça do servidor ainda não está instalada';
+        else{const d=await r.json().catch(()=>({}));recado=d.erro||('erro '+r.status);}
+      }catch(e){recado='não consegui falar com o servidor';}
+      fecharModal();gradeAcessos();
+      toast(entrada
+        ?'Senha trocada — vale para entrar e para assinar.'
+        :`Senha gravada no cadastro. A de entrada não mudou: ${recado}.`,!entrada);
     }catch(e){
       toast(e.message,true);
       M('rsK').disabled=false;M('rsK').textContent='Salvar';
@@ -7861,6 +8023,12 @@ async function excluirAcesso(email){
 
 /* ---------- arranque ---------- */
 async function iniciarComNuvem(){
+  /* A permissão vem do cadastro de acessos. Quem entra pela tela de login não
+     passa pelo bloco de arranque, então é AQUI que ela precisa ser lida.
+     Sem isto MEU_ACESSO fica nulo, podeVer() é falso em tudo e o menu inteiro
+     nasce escondido — o sistema abre mudo, sem dizer o porquê. */
+  try{ await lerAcessos(); }
+  catch(e){ console.warn('nao consegui ler os acessos:',(e&&e.message)||e); }
   let linha=null;
   try{ linha=await nuvemLer(); }
   catch(e){
@@ -7888,6 +8056,7 @@ async function iniciarComNuvem(){
     marcarEstado(`${ORDENS.length} OP · ${SALDOS.length} saldo · online`);
   }
   render();
+  if(!MEU_ACESSO&&!MODO_TV)semAcesso();
   if(MODO_TV){try{renderTV();}catch(e){}}else{irParaAgora();}
   ligarPolling();
   const q=M('quem');

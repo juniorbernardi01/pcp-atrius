@@ -1952,7 +1952,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v103';
+const VERSAO_APP='v104';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -7300,7 +7300,10 @@ let ABA_LOTE='preparo';
    ver o que vai embora junto.
    ===================================================================== */
 function excluirLote(b){
-  const l=(b.ordens||[]).filter(o=>naGrade(o));
+  /* ativa(), não naGrade(): naGrade descarta as OPs 'pendente' — que são
+     justamente as que precisam ser apagadas aqui. Com o filtro errado a lista
+     saía vazia, nada era cancelado, e a tela dizia que tinha excluído. */
+  const l=(b.ordens||[]).filter(o=>ativa(o));
   const cxTotal=l.reduce((s,o)=>s+caixasPrev(o),0);
   if(M('mAcao'))M('mAcao').innerHTML='';
   M('modal').classList.remove('wide');
@@ -7331,6 +7334,8 @@ function excluirLote(b){
   M('xlK').onclick=()=>{
     const mot=cv('xlMot').trim();
     if(!mot){toast('Escreva o motivo.',true);M('xlMot').focus();return;}
+    /* nunca dizer que excluiu sem ter excluído nada */
+    if(!l.length){toast('Não há OP para excluir neste lote.',true);return;}
     /* cancelada em vez de sumir da lista: o histórico do lote fica rastreável,
        e o volume deixa de contar porque naGrade() e ativa() ignoram canceladas */
     l.forEach(o=>{o.status='cancelada';
@@ -7416,8 +7421,9 @@ function abrirLote(b){
   /* Excluir o lote é excluir as OPs de envase dele: a batelada não existe por
      si, ela é derivada das ordens. Sem este botão, uma OP lançada errada que
      só aparecia no tanque não tinha como ser apagada de lugar nenhum. */
-  const podeApagar=b.origem!=='saldo'&&b.ordens&&b.ordens.length
-    &&b.ordens.every(o=>sit(o)!=='concluida')&&nivel('envase')==='excluir';
+  const apagaveis=(b.ordens||[]).filter(o=>ativa(o));
+  const podeApagar=b.origem!=='saldo'&&apagaveis.length
+    &&apagaveis.every(o=>sit(o)!=='concluida')&&nivel('envase')==='excluir';
   M('mAcao').innerHTML=podeApagar
     ?`<button class="btn del sm" id="lDel">Excluir lote</button>`:'';
   M('mF').innerHTML=`

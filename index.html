@@ -7728,16 +7728,37 @@ async function lerAcessos(){
   try{M('quem').querySelector('b').textContent=nomeDaSessao()==='—'?'':nomeDaSessao();}catch(e){}
   return ACESSOS;
 }
+/* A tabela no banco pode não ter todas as colunas que o sistema conhece: ela
+   foi criada antes de alguns campos existirem. Em vez de recusar o cadastro
+   inteiro por causa de uma coluna, grava o que dá e diz em voz alta o que
+   ficou de fora — o cadastro passa, e você sabe o que falta acertar no banco. */
+let COLUNAS_AUSENTES=[];
 async function gravarAcesso(linha,novo,email){
   if(linha&&linha.email)linha={...linha,email:norMail(linha.email)};
   const alvo=norMail(email||(linha&&linha.email));
-  const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso`+(novo?'':`?email=eq.${encodeURIComponent(alvo)}`),{
-    method:novo?'POST':'PATCH',
-    headers:cabecalhos({'Prefer':'return=representation'}),
-    body:JSON.stringify(novo?[linha]:linha)});
-  const d=await r.json().catch(()=>null);
-  if(!r.ok)throw new Error((d&&(d.message||d.hint))||'falha ao gravar ('+r.status+')');
-  return d;
+  let corpo={...linha},caiu=[];
+  for(let volta=0;volta<8;volta++){
+    const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso`+(novo?'':`?email=eq.${encodeURIComponent(alvo)}`),{
+      method:novo?'POST':'PATCH',
+      headers:cabecalhos({'Prefer':'return=representation'}),
+      body:JSON.stringify(novo?[corpo]:corpo)});
+    const d=await r.json().catch(()=>null);
+    if(r.ok){
+      if(caiu.length){
+        caiu.forEach(c=>{if(COLUNAS_AUSENTES.indexOf(c)<0)COLUNAS_AUSENTES.push(c);});
+        toast(`Gravado, mas ${caiu.join(' e ')} não existe${caiu.length>1?'m':''} `
+             +`na tabela pcp_acesso e ficou de fora.`,true);
+      }
+      return d;
+    }
+    const msg=(d&&(d.message||d.hint||d.details))||'';
+    const m=/Could not find the '([^']+)' column/i.exec(msg);
+    if(m&&Object.prototype.hasOwnProperty.call(corpo,m[1])){
+      delete corpo[m[1]];caiu.push(m[1]);continue;
+    }
+    throw new Error(msg||'falha ao gravar ('+r.status+')');
+  }
+  throw new Error('não consegui gravar: colunas demais faltando na tabela');
 }
 async function apagarAcesso(email){
   const r=await fetch(`${SUPA.url}/rest/v1/pcp_acesso?email=eq.${encodeURIComponent(email)}`,
@@ -7799,7 +7820,14 @@ async function gradeAcessos(){
         <button class="ordb del" data-acdel="${a.email}" title="Excluir">&#10005;</button>
       </td></tr>`).join('')}
     </tbody></table>
-    <button class="btn pri sm" id="acNovo" style="margin-top:12px">+ Nova pessoa</button>`;
+    <button class="btn pri sm" id="acNovo" style="margin-top:12px">+ Nova pessoa</button>
+    ${COLUNAS_AUSENTES.length?`<div class="alert" style="margin-top:14px">
+      <b>Faltam colunas na tabela <span class="mono">pcp_acesso</span>:</b>
+      <span class="mono">${COLUNAS_AUSENTES.join(', ')}</span>.<br>
+      O que vai nelas não está sendo gravado. Rode isto no SQL Editor do Supabase:<br>
+      <span class="mono" style="display:block;margin-top:6px">${
+        COLUNAS_AUSENTES.map(c=>`alter table pcp_acesso add column if not exists ${c} text;`).join('<br>')
+      }</span></div>`:''}`;
   if(M('acNovo'))M('acNovo').onclick=()=>modalAcesso(null);
   el.querySelectorAll('[data-aced]').forEach(b=>b.onclick=()=>
     modalAcesso(ACESSOS.find(a=>a.email===b.dataset.aced)));

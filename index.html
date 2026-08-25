@@ -1124,59 +1124,59 @@ const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOUAAAB4CAMAAAA678W5AA
    tanque = produto do lote no tanque (o que a mistura prepara)
    ===================================================================== */
 const PRODUTOS=[
-  {codigo:'401',descricao:'ÁGUA SANITÁRIA 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária'},
-  {codigo:'402',descricao:'ÁGUA SANITÁRIA 2L - CX C/6 UN',litragem:2,un_cx:6,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária'},
-  {codigo:'403',descricao:'ÁGUA SANITÁRIA 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária'},
-  {codigo:'301',descricao:'ALVEJANTE SEM CLORO 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante'},
-  {codigo:'302',descricao:'ALVEJANTE SEM CLORO 2L - CX C/6 UN',litragem:2,un_cx:6,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante'},
-  {codigo:'303',descricao:'ALVEJANTE SEM CLORO 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante'},
-  {codigo:'803',descricao:'AMACIANTE 2L AZUL - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE AZUL',grupo:'Amaciante'},
-  {codigo:'801',descricao:'AMACIANTE 2L ROSA - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE ROSA',grupo:'Amaciante'},
-  {codigo:'804',descricao:'AMACIANTE 2L ROXO - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE ROXO',grupo:'Amaciante'},
-  {codigo:'503',descricao:'AMACIANTE 2L TRADICIONAL - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE TRADICIONAL',grupo:'Amaciante'},
-  {codigo:'802',descricao:'AMACIANTE 2L VERDE - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE VERDE',grupo:'Amaciante'},
-  {codigo:'813',descricao:'AMACIANTE 5L AZUL - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE AZUL',grupo:'Amaciante'},
-  {codigo:'811',descricao:'AMACIANTE 5L ROSA - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE ROSA',grupo:'Amaciante'},
-  {codigo:'814',descricao:'AMACIANTE 5L ROXO - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE ROXO',grupo:'Amaciante'},
-  {codigo:'812',descricao:'AMACIANTE 5L VERDE - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE VERDE',grupo:'Amaciante'},
-  {codigo:'101',descricao:'CLORO GEL 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'CLORO GEL',grupo:'Cloro gel'},
-  {codigo:'37',descricao:'DESENGORDURANTE 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'DESENGORDURANTE',grupo:'Desengordurante'},
-  {codigo:'39',descricao:'DESENGORDURANTE 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESENGORDURANTE',grupo:'Desengordurante'},
-  {codigo:'912',descricao:'DESINFETANTE 2L EUCALIPTO - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE EUCALIPTO',grupo:'Desinfetante'},
-  {codigo:'913',descricao:'DESINFETANTE 2L FLORAL - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE FLORAL',grupo:'Desinfetante'},
-  {codigo:'914',descricao:'DESINFETANTE 2L LAVANDA - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE LAVANDA',grupo:'Desinfetante'},
-  {codigo:'915',descricao:'DESINFETANTE 2L MARINE - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE MARINE',grupo:'Desinfetante'},
-  {codigo:'916',descricao:'DESINFETANTE 2L PINHO - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE PINHO',grupo:'Desinfetante'},
-  {codigo:'922',descricao:'DESINFETANTE 5L EUCALIPTO - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE EUCALIPTO',grupo:'Desinfetante'},
-  {codigo:'923',descricao:'DESINFETANTE 5L FLORAL - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE FLORAL',grupo:'Desinfetante'},
-  {codigo:'924',descricao:'DESINFETANTE 5L LAVANDA - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE LAVANDA',grupo:'Desinfetante'},
-  {codigo:'925',descricao:'DESINFETANTE 5L MARINE - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE MARINE',grupo:'Desinfetante'},
-  {codigo:'926',descricao:'DESINFETANTE 5L PINHO - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE PINHO',grupo:'Desinfetante'},
-  {codigo:'732',descricao:'LAVA LOUÇAS 1L CLEAR - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS CLEAR',grupo:'Lava louças',ativo:false},
-  {codigo:'733',descricao:'LAVA LOUÇAS 1L MAÇÃ - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS MAÇÃ',grupo:'Lava louças'},
-  {codigo:'734',descricao:'LAVA LOUÇAS 1L NEUTRO - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças'},
-  {codigo:'714',descricao:'LAVA LOUÇAS 2L NEUTRO - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças'},
-  {codigo:'702',descricao:'LAVA LOUÇAS 500ML CLEAR - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS CLEAR',grupo:'Lava louças',ativo:false},
-  {codigo:'705',descricao:'LAVA LOUÇAS 500ML LIMÃO - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS LIMÃO',grupo:'Lava louças',ativo:false},
-  {codigo:'703',descricao:'LAVA LOUÇAS 500ML MAÇÃ - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS MAÇÃ',grupo:'Lava louças'},
-  {codigo:'704',descricao:'LAVA LOUÇAS 500ML NEUTRO - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças'},
-  {codigo:'724',descricao:'LAVA LOUÇAS 5L NEUTRO - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças'},
-  {codigo:'615',descricao:'LAVA ROUPAS 2L GLICERINA - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas'},
-  {codigo:'614',descricao:'LAVA ROUPAS 2L PREMIUM - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas'},
-  {codigo:'645',descricao:'LAVA ROUPAS 3L GLICERINA - FD C/6 UN',litragem:3,un_cx:6,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas'},
-  {codigo:'644',descricao:'LAVA ROUPAS 3L PREMIUM - FD C/6 UN',litragem:3,un_cx:6,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas'},
-  {codigo:'625',descricao:'LAVA ROUPAS 5L GLICERINA - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas'},
-  {codigo:'624',descricao:'LAVA ROUPAS 5L PREMIUM - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas'},
-  {codigo:'1100',descricao:'LIMPA CANIL 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'LIMPA CANIL',grupo:'Limpa canil'},
-  {codigo:'1102',descricao:'LIMPA CANIL 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPA CANIL',grupo:'Limpa canil'},
-  {codigo:'568',descricao:'LIMPA VIDROS 500ML GATILHO - CX C/12 UN',litragem:0.5,un_cx:12,tanque:'LIMPA VIDROS',grupo:'Limpa vidros'},
-  {codigo:'569',descricao:'LIMPA VIDROS 500ML REFIL - CX C/12 UN',litragem:0.5,un_cx:12,tanque:'LIMPA VIDROS',grupo:'Limpa vidros'},
-  {codigo:'1005',descricao:'LIMPADOR PERFUMADO 2L EUFORIA - CX C/6 UN',litragem:2,un_cx:6,tanque:'LIMPADOR PERFUMADO EUFORIA',grupo:'Limpador perfumado'},
-  {codigo:'1006',descricao:'LIMPADOR PERFUMADO 2L FELICIDADE - CX C/6 UN',litragem:2,un_cx:6,tanque:'LIMPADOR PERFUMADO FELICIDADE',grupo:'Limpador perfumado'},
-  {codigo:'1003',descricao:'LIMPADOR PERFUMADO 5L EUFORIA - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPADOR PERFUMADO EUFORIA',grupo:'Limpador perfumado'},
-  {codigo:'1004',descricao:'LIMPADOR PERFUMADO 5L FELICIDADE - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPADOR PERFUMADO FELICIDADE',grupo:'Limpador perfumado'},
-  {codigo:'405',descricao:'LIMPEZA PESADA 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'LIMPEZA PESADA',grupo:'Limpeza pesada'},
-  {codigo:'406',descricao:'LIMPEZA PESADA 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPEZA PESADA',grupo:'Limpeza pesada'},
+  {codigo:'401',descricao:'ÁGUA SANITÁRIA 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária',dun:'17898556040140'},
+  {codigo:'402',descricao:'ÁGUA SANITÁRIA 2L - CX C/6 UN',litragem:2,un_cx:6,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária',dun:'17898556040331'},
+  {codigo:'403',descricao:'ÁGUA SANITÁRIA 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'ÁGUA SANITÁRIA',grupo:'Água sanitária',dun:'17898556040102'},
+  {codigo:'301',descricao:'ALVEJANTE SEM CLORO 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante',dun:'17898556040881'},
+  {codigo:'302',descricao:'ALVEJANTE SEM CLORO 2L - CX C/6 UN',litragem:2,un_cx:6,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante',dun:'17898556040379'},
+  {codigo:'303',descricao:'ALVEJANTE SEM CLORO 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'ALVEJANTE SEM CLORO',grupo:'Alvejante',dun:'17898556040898'},
+  {codigo:'803',descricao:'AMACIANTE 2L AZUL - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE AZUL',grupo:'Amaciante',dun:'17898556041093'},
+  {codigo:'801',descricao:'AMACIANTE 2L ROSA - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE ROSA',grupo:'Amaciante',dun:'17898556041109'},
+  {codigo:'804',descricao:'AMACIANTE 2L ROXO - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE ROXO',grupo:'Amaciante',dun:'17898556041116'},
+  {codigo:'503',descricao:'AMACIANTE 2L TRADICIONAL - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE TRADICIONAL',grupo:'Amaciante',dun:''},
+  {codigo:'802',descricao:'AMACIANTE 2L VERDE - CX C/6 UN',litragem:2,un_cx:6,tanque:'AMACIANTE VERDE',grupo:'Amaciante',dun:'17898556041123'},
+  {codigo:'813',descricao:'AMACIANTE 5L AZUL - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE AZUL',grupo:'Amaciante',dun:'17898556041161'},
+  {codigo:'811',descricao:'AMACIANTE 5L ROSA - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE ROSA',grupo:'Amaciante',dun:'17898556041154'},
+  {codigo:'814',descricao:'AMACIANTE 5L ROXO - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE ROXO',grupo:'Amaciante',dun:'17898556041147'},
+  {codigo:'812',descricao:'AMACIANTE 5L VERDE - FD C/4 UN',litragem:5,un_cx:4,tanque:'AMACIANTE VERDE',grupo:'Amaciante',dun:'17898556041130'},
+  {codigo:'101',descricao:'CLORO GEL 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'CLORO GEL',grupo:'Cloro gel',dun:'17898556041086'},
+  {codigo:'37',descricao:'DESENGORDURANTE 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'DESENGORDURANTE',grupo:'Desengordurante',dun:'17898556040959'},
+  {codigo:'39',descricao:'DESENGORDURANTE 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESENGORDURANTE',grupo:'Desengordurante',dun:'17898556040034'},
+  {codigo:'912',descricao:'DESINFETANTE 2L EUCALIPTO - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE EUCALIPTO',grupo:'Desinfetante',dun:'17898556040591'},
+  {codigo:'913',descricao:'DESINFETANTE 2L FLORAL - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE FLORAL',grupo:'Desinfetante',dun:'17898556040782'},
+  {codigo:'914',descricao:'DESINFETANTE 2L LAVANDA - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE LAVANDA',grupo:'Desinfetante',dun:'17898556040577'},
+  {codigo:'915',descricao:'DESINFETANTE 2L MARINE - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE MARINE',grupo:'Desinfetante',dun:'17898556040584'},
+  {codigo:'916',descricao:'DESINFETANTE 2L PINHO - CX C/6 UN',litragem:2,un_cx:6,tanque:'DESINFETANTE PINHO',grupo:'Desinfetante',dun:'17898556040799'},
+  {codigo:'922',descricao:'DESINFETANTE 5L EUCALIPTO - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE EUCALIPTO',grupo:'Desinfetante',dun:'17898556040614'},
+  {codigo:'923',descricao:'DESINFETANTE 5L FLORAL - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE FLORAL',grupo:'Desinfetante',dun:'17898556040751'},
+  {codigo:'924',descricao:'DESINFETANTE 5L LAVANDA - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE LAVANDA',grupo:'Desinfetante',dun:'17898556040607'},
+  {codigo:'925',descricao:'DESINFETANTE 5L MARINE - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE MARINE',grupo:'Desinfetante',dun:'17898556040621'},
+  {codigo:'926',descricao:'DESINFETANTE 5L PINHO - FD C/4 UN',litragem:5,un_cx:4,tanque:'DESINFETANTE PINHO',grupo:'Desinfetante',dun:'17898556040768'},
+  {codigo:'732',descricao:'LAVA LOUÇAS 1L CLEAR - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS CLEAR',grupo:'Lava louças',ativo:false,dun:''},
+  {codigo:'733',descricao:'LAVA LOUÇAS 1L MAÇÃ - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS MAÇÃ',grupo:'Lava louças',dun:'17898556040874'},
+  {codigo:'734',descricao:'LAVA LOUÇAS 1L NEUTRO - CX C/12 UN',litragem:1,un_cx:12,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças',dun:'17898556040560'},
+  {codigo:'714',descricao:'LAVA LOUÇAS 2L NEUTRO - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças',dun:''},
+  {codigo:'702',descricao:'LAVA LOUÇAS 500ML CLEAR - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS CLEAR',grupo:'Lava louças',ativo:false,dun:''},
+  {codigo:'705',descricao:'LAVA LOUÇAS 500ML LIMÃO - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS LIMÃO',grupo:'Lava louças',ativo:false,dun:''},
+  {codigo:'703',descricao:'LAVA LOUÇAS 500ML MAÇÃ - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS MAÇÃ',grupo:'Lava louças',dun:'17898556040065'},
+  {codigo:'704',descricao:'LAVA LOUÇAS 500ML NEUTRO - CX C/24 UN',litragem:0.5,un_cx:24,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças',dun:'27898556040079'},
+  {codigo:'724',descricao:'LAVA LOUÇAS 5L NEUTRO - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA LOUÇAS NEUTRO',grupo:'Lava louças',dun:'17898556040447'},
+  {codigo:'615',descricao:'LAVA ROUPAS 2L GLICERINA - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas',dun:'17898556040478'},
+  {codigo:'614',descricao:'LAVA ROUPAS 2L PREMIUM - CX C/6 UN',litragem:2,un_cx:6,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas',dun:'17898556040263'},
+  {codigo:'645',descricao:'LAVA ROUPAS 3L GLICERINA - FD C/6 UN',litragem:3,un_cx:6,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas',dun:'17898556040935'},
+  {codigo:'644',descricao:'LAVA ROUPAS 3L PREMIUM - FD C/6 UN',litragem:3,un_cx:6,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas',dun:'17898556040904'},
+  {codigo:'625',descricao:'LAVA ROUPAS 5L GLICERINA - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA ROUPAS GLICERINA',grupo:'Lava roupas',dun:'17898556040362'},
+  {codigo:'624',descricao:'LAVA ROUPAS 5L PREMIUM - FD C/4 UN',litragem:5,un_cx:4,tanque:'LAVA ROUPAS PREMIUM',grupo:'Lava roupas',dun:'17898556040256'},
+  {codigo:'1100',descricao:'LIMPA CANIL 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'LIMPA CANIL',grupo:'Limpa canil',dun:'17898556040386'},
+  {codigo:'1102',descricao:'LIMPA CANIL 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPA CANIL',grupo:'Limpa canil',dun:'27898556040383'},
+  {codigo:'568',descricao:'LIMPA VIDROS 500ML GATILHO - CX C/12 UN',litragem:0.5,un_cx:12,tanque:'LIMPA VIDROS',grupo:'Limpa vidros',dun:'17898556041253'},
+  {codigo:'569',descricao:'LIMPA VIDROS 500ML REFIL - CX C/12 UN',litragem:0.5,un_cx:12,tanque:'LIMPA VIDROS',grupo:'Limpa vidros',dun:'17898556040553'},
+  {codigo:'1005',descricao:'LIMPADOR PERFUMADO 2L EUFORIA - CX C/6 UN',litragem:2,un_cx:6,tanque:'LIMPADOR PERFUMADO EUFORIA',grupo:'Limpador perfumado',dun:'17898556040645'},
+  {codigo:'1006',descricao:'LIMPADOR PERFUMADO 2L FELICIDADE - CX C/6 UN',litragem:2,un_cx:6,tanque:'LIMPADOR PERFUMADO FELICIDADE',grupo:'Limpador perfumado',dun:'27898556040635'},
+  {codigo:'1003',descricao:'LIMPADOR PERFUMADO 5L EUFORIA - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPADOR PERFUMADO EUFORIA',grupo:'Limpador perfumado',dun:'17898556040164'},
+  {codigo:'1004',descricao:'LIMPADOR PERFUMADO 5L FELICIDADE - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPADOR PERFUMADO FELICIDADE',grupo:'Limpador perfumado',dun:'17898556040638'},
+  {codigo:'405',descricao:'LIMPEZA PESADA 1L - CX C/12 UN',litragem:1,un_cx:12,tanque:'LIMPEZA PESADA',grupo:'Limpeza pesada',dun:'17898556040928'},
+  {codigo:'406',descricao:'LIMPEZA PESADA 5L - FD C/4 UN',litragem:5,un_cx:4,tanque:'LIMPEZA PESADA',grupo:'Limpeza pesada',dun:'17898556040027'},
 ];
 const GRUPOS=[...new Set(PRODUTOS.map(p=>p.grupo))];
 const CORES={
@@ -1952,7 +1952,7 @@ function faltaNoFrasco(oc){
 const M=id=>document.getElementById(id);
 /* Sem isto não há como saber, olhando a tela, se o que está no ar é o arquivo
    novo ou o cache antigo do navegador. Subiu versão: mude esta linha. */
-const VERSAO_APP='v100';
+const VERSAO_APP='v101';
 let DRAG=null;
 function render(){
   recomporTudo();
@@ -2609,7 +2609,7 @@ function gradeProdutos(){
   const l=PRODUTOS.filter(p=>!q||p.descricao.toLowerCase().includes(q)||String(p.codigo).includes(q));
   el.innerHTML=`
     <table class="tb"><thead><tr>
-      <th>SKU</th><th>Produto</th><th class="n">L/cx</th><th>Lote no tanque</th>
+      <th>SKU</th><th>Produto</th><th class="n">L/cx</th><th>DUN-14</th><th>Lote no tanque</th>
       ${MAQUINAS.map(m=>`<th class="n">${m}</th>`).join('')}
       <th class="n">Lote padrão</th><th class="n">Limpeza</th><th class="n">Fabric.</th><th class="n">Descanso</th><th></th>
     </tr></thead><tbody>
@@ -2618,7 +2618,9 @@ function gradeProdutos(){
       return `<tr class="${ativoProd(p)?'':'inat'}">
         <td class="mono">${p.codigo}</td>
         <td>${p.descricao}${ativoProd(p)?'':' <span class="k">inativo</span>'}</td>
-        <td class="n mono">${p.un_cx}×${fmtLit(p.litragem)}</td>
+        <td class="mono ${p.dun?(dunValido(p.dun)?'':'w'):'k'}"
+          title="${p.dun&&!dunValido(p.dun)?'dígito verificador não confere':''}">${
+          p.dun?dunLegivel(p.dun):'—'}</td>
         <td class="k">${p.tanque}</td>
         ${MAQUINAS.map(m=>{
           const v=x.t&&x.t[m];
@@ -2655,6 +2657,10 @@ function modalProduto(p){
     </div>
     <div class="fld"><label>Descrição <b>*</b></label>
       <input id="pDesc" value="${novo?'':p.descricao}" placeholder="AMACIANTE 2L ROXO - CX C/6 UN"></div>
+    <div class="fld"><label>DUN-14 do fardo</label>
+      <input id="pDun" inputmode="numeric" maxlength="17"
+        value="${novo?'':(p.dun||'')}" placeholder="17898556040102">
+      <div class="hint" id="pDunHint" style="font-size:11.5px;color:var(--ink3);margin-top:4px"></div></div>
     <div class="g2">
       <div class="fld"><label>Litragem (L)</label>
         <input type="number" id="pLit" step="0.001" value="${novo?'':p.litragem}"></div>
@@ -2737,6 +2743,20 @@ function modalProduto(p){
   };
   pintarEsp();
   M('pTq').addEventListener('change',pintarEsp);
+  /* confere o dígito verificador enquanto digita: errar aqui gera etiqueta
+     que o leitor do cliente recusa, e ninguém descobre até o fardo chegar lá */
+  const verDun=()=>{
+    const d=cv('pDun').replace(/\D/g,''),el=M('pDunHint');
+    if(!el)return;
+    if(!d){el.innerHTML='Código do fardo, 14 dígitos. Sem ele a etiqueta sai sem barras.';
+      el.style.color='var(--ink3)';return;}
+    if(d.length!==14){el.innerHTML=`${d.length} de 14 dígitos.`;el.style.color='var(--ink3)';return;}
+    if(dunValido(d)){el.innerHTML=`<b>${dunLegivel(d)}</b> — dígito verificador confere.`;
+      el.style.color='var(--run)';}
+    else{el.innerHTML=`Dígito verificador não confere — o certo para
+      ${d.slice(0,13)} seria <b>${digitoGS1(d.slice(0,13))}</b>.`;el.style.color='var(--danger)';}
+  };
+  if(M('pDun')){M('pDun').addEventListener('input',verDun);verDun();}
   M('mF').innerHTML=`<div class="mfesq"></div><div class="mfdir">
     <button class="btn" id="pC">Fechar</button>
     <button class="btn pri" id="pK">${novo?'Cadastrar':'Salvar'}</button></div>`;
@@ -2750,6 +2770,9 @@ function modalProduto(p){
     if(novo&&PRODUTOS.some(x=>String(x.codigo)===cod)){toast('Já existe esse SKU.',true);return;}
     const alvo=novo?{codigo:cod,grupo:(PRODUTOS[0]||{}).grupo}:p;
     alvo.descricao=desc;alvo.tanque=gran;
+    /* DUN-14 fica só com dígitos: o operador cola de planilha e vem com espaço */
+    if(M('pDun')){const d=cv('pDun').replace(/\D/g,'');
+      if(d)alvo.dun=d; else delete alvo.dun;}
     alvo.litragem=+M('pLit').value||1;alvo.un_cx=+M('pUn').value||6;
     alvo.ativo=M('pAtivo').value==='1';
     if(novo)PRODUTOS.push(alvo);
@@ -3628,6 +3651,127 @@ function embalagemDe(o){
   const un=caixasPrev(o)*p.un_cx;
   return itens.map(x=>({...x,precisa:Math.ceil((+x.qtd||0)*un)}));
 }
+
+/* escape local: o esc() do certificado vive dentro de outra função */
+const escTxt=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+/* =====================================================================
+   ETIQUETA DO FARDO — 60 × 40 mm, impressora térmica
+   Sai direto do navegador. O @page com o tamanho exato faz o Chrome
+   mandar uma etiqueta por página, sem margem; a térmica corta sozinha.
+   ===================================================================== */
+function etiquetaHTML(p,lote,dataFab,qtd){
+  const cod=String(p.dun||'').replace(/\D/g,'');
+  const barras=barrasITF14(cod,52,15);
+  const uma=`<div class="etq">
+    <div class="nm">${escTxt(nomeCurto(p.codigo))}</div>
+    <div class="bc">${barras||'<span class="semdun">produto sem DUN-14 cadastrado</span>'}</div>
+    <div class="num">${escTxt(dunLegivel(cod))}</div>
+    <div class="pe"><span><b>LOTE:</b> ${escTxt(lote||'—')}</span>
+      <span><b>FAB.:</b> ${escTxt(dataFab)}</span></div>
+  </div>`;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>${escTxt(nomeCurto(p.codigo))} · lote ${escTxt(lote||'')}</title>
+<style>
+  @page{size:60mm 40mm;margin:0}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .etq{width:60mm;height:40mm;padding:1.5mm 2mm;display:flex;flex-direction:column;
+    align-items:center;justify-content:space-between;page-break-after:always;
+    background:#fff;color:#000;overflow:hidden}
+  .etq:last-child{page-break-after:auto}
+  /* o nome encolhe sozinho quando é comprido, para nunca cortar */
+  .nm{font-weight:900;font-size:5mm;line-height:1;text-align:center;letter-spacing:-.02em;
+    width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bc{width:100%;height:15mm;display:flex;align-items:center;justify-content:center}
+  .bc svg{width:56mm;height:15mm}
+  .num{font-weight:800;font-size:4.4mm;letter-spacing:.06em;line-height:1}
+  .pe{width:100%;display:flex;justify-content:space-between;align-items:baseline;
+    font-size:3.6mm;line-height:1;border-top:.4mm solid #000;padding-top:1.2mm}
+  .pe b{font-weight:900}
+  .semdun{font-size:3.2mm;color:#900;font-weight:700}
+  .noprint{position:fixed;top:0;left:0;right:0;background:#111;color:#fff;
+    padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:center;z-index:9}
+  .noprint button{font:inherit;padding:6px 14px;border-radius:7px;border:0;cursor:pointer;
+    background:#2563EB;color:#fff;font-weight:600}
+  @media print{.noprint{display:none}}
+</style></head><body>
+<div class="noprint"><b>${qtd} etiqueta${qtd>1?'s':''}</b>
+  <span style="opacity:.7">60 × 40 mm · escolha a impressora térmica e deixe a margem em zero</span>
+  <span style="flex:1"></span>
+  <button onclick="window.print()">Imprimir</button></div>
+${uma.repeat(qtd)}
+</body></html>`;
+}
+
+function imprimirEtiqueta(o){
+  const p=prodOf(o.codigo);
+  const cod=String(p.dun||'').replace(/\D/g,'');
+  if(M('mAcao'))M('mAcao').innerHTML='';
+  M('modal').classList.remove('wide');
+  M('mTit').textContent='Imprimir etiqueta do fardo';
+  M('mSub').hidden=false;
+  M('mSub').textContent=`${nomeCurto(o.codigo)} · lote ${o.lote||'—'}`;
+  const sug=Math.max(1,caixasPrev(o));
+  M('mB').innerHTML=`
+    ${!cod?`<div class="alert q"><b>Este produto não tem DUN-14 cadastrado.</b>
+      A etiqueta sai sem código de barras. Cadastre em
+      Administração &rarr; Produtos &rarr; ${escTxt(p.codigo)}.</div>`
+     :!dunValido(cod)?`<div class="alert"><b>Atenção:</b> o DUN-14
+      <span class="mono">${escTxt(cod)}</span> não passa na conta do dígito verificador.
+      A etiqueta sai, mas confira o número antes de colar no fardo.</div>`:''}
+    <div class="g3">
+      <div class="fld"><label>Lote</label>
+        <input id="etLote" value="${escAttr(o.lote||'')}"></div>
+      <div class="fld"><label>Fabricação</label>
+        <input type="date" id="etData" value="${o.data||ymd(new Date())}"></div>
+      <div class="fld"><label>Quantidade <b>*</b></label>
+        <input type="number" id="etQt" min="1" max="500" step="1" value="${sug}"></div>
+    </div>
+    <div class="hint" style="font-size:11.5px;color:var(--ink3);margin:-4px 0 12px">
+      Sugerido: uma por caixa prevista nesta OP.</div>
+    <div class="st2">Como vai sair</div>
+    <div id="etPrev" style="display:flex;justify-content:center;padding:10px 0"></div>`;
+  M('mF').innerHTML=`<div style="flex:1"></div>
+    <button class="btn" id="etC">Voltar</button>
+    <button class="btn pri" id="etK">Abrir para imprimir</button>`;
+  const prev=()=>{
+    const b=barrasITF14(cod,52,15);
+    M('etPrev').innerHTML=`<div style="width:60mm;height:40mm;border:1px solid var(--line);
+      border-radius:4px;background:#fff;color:#000;padding:1.5mm 2mm;display:flex;
+      flex-direction:column;align-items:center;justify-content:space-between;
+      font-family:Arial,sans-serif;overflow:hidden">
+      <div style="font-weight:900;font-size:5mm;line-height:1;text-align:center;width:100%;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escTxt(nomeCurto(o.codigo))}</div>
+      <div style="width:100%;height:15mm;display:flex;align-items:center;justify-content:center">
+        ${b?`<div style="width:56mm;height:15mm">${b}</div>`
+           :'<span style="font-size:3.2mm;color:#900;font-weight:700">sem DUN-14</span>'}</div>
+      <div style="font-weight:800;font-size:4.4mm;letter-spacing:.06em">${escTxt(dunLegivel(cod))}</div>
+      <div style="width:100%;display:flex;justify-content:space-between;font-size:3.6mm;
+        border-top:.4mm solid #000;padding-top:1.2mm">
+        <span><b>LOTE:</b> ${escTxt(cv('etLote')||'—')}</span>
+        <span><b>FAB.:</b> ${dFab(cv('etData'))}</span></div>
+    </div>`;
+  };
+  ['etLote','etData'].forEach(i=>M(i)&&M(i).addEventListener('input',prev));
+  prev();
+  M('etC').onclick=()=>abrirOrdem(o);
+  M('etK').onclick=()=>{
+    const q=Math.max(1,Math.min(500,+cv('etQt')||1));
+    const html=etiquetaHTML(p,cv('etLote'),dFab(cv('etData')),q);
+    try{
+      const w=window.open('','_blank');
+      if(!w){toast('O navegador bloqueou a janela. Libere os pop-ups e tente de novo.',true);return;}
+      w.document.write(html);w.document.close();
+      /* a impressão é disparada daqui, e não de dentro da página: uma tag de
+         script dentro de template literal parte o arquivo HTML em dois */
+      setTimeout(()=>{try{w.focus();w.print();}catch(e){}},400);
+      registrar(o,'Etiquetas impressas',null,`${q} etiqueta${q>1?'s':''} · lote ${cv('etLote')||'—'}`);
+      agendarSalvar();fecharModal();
+    }catch(e){toast('Não consegui abrir a janela de impressão.',true);}
+  };
+  abrirMask();
+}
+
 function imprimirOPEnvase(o){
   const p=prodOf(o.codigo);
   const emb=embalagemDe(o);
@@ -5702,6 +5846,7 @@ function abrirOrdem(o,pre){
   const ed=podeEditar('envase'),xc=podeExcluir('envase');
   if(fim&&ed)acts.push(`<button class="btn warn sm" id="mReab">Reabrir OP</button>`);
   if(o)acts.push(`<button class="btn sm" id="mOP">Imprimir OP</button>`);
+  if(o&&o.codigo)acts.push(`<button class="btn sm" id="mEtq">Imprimir etiqueta</button>`);
   /* Dividir lote: mesmo lote do tanque, litragens diferentes do mesmo produto.
      Repetir, Mover e Interromper saíram a pedido — Mover aparecia duas vezes,
      com dois ids e a mesma palavra, o que ninguém conseguia distinguir. */
@@ -5752,6 +5897,7 @@ function abrirOrdem(o,pre){
   if(M('mDiv'))M('mDiv').onclick=()=>dividir(o);
   if(M('mDel'))M('mDel').onclick=()=>excluir(o);
   if(M('mOP'))M('mOP').onclick=()=>imprimirOPEnvase(o);
+  if(M('mEtq'))M('mEtq').onclick=()=>imprimirEtiqueta(o);
   M('mB').querySelectorAll('[data-oab]').forEach(x=>x.onclick=()=>{
     /* no lançamento, guarda o digitado antes de redesenhar — na aba Embalagem
        o formulário não existe, então ler() ali devolveria vazio */
@@ -7308,6 +7454,58 @@ function abrirLiberacoes(){
    ===================================================================== */
 
 /* =====================================================================
+   CÓDIGO DE BARRAS ITF-14  (DUN-14 do fardo)
+   Interleaved 2 of 5: os dígitos entram aos pares — o primeiro vira as
+   barras, o segundo os espaços. Por isso a quantidade precisa ser par, e
+   o ITF-14 usa 14 exatos. Desenhado em SVG para sair nítido na térmica:
+   imagem redimensionada borra as barras finas e o leitor recusa.
+   ===================================================================== */
+const ITF={'0':'NNWWN','1':'WNNNW','2':'NWNNW','3':'WWNNN','4':'NNWNW',
+           '5':'WNWNN','6':'NWWNN','7':'NNNWW','8':'WNNWN','9':'NWNWN'};
+/* dígito verificador do GS1: pesos 3 e 1 alternados, da esquerda */
+function digitoGS1(base){
+  const s=String(base).split('').reduce((a,d,i)=>a+(+d)*(i%2===0?3:1),0);
+  return (10-s%10)%10;
+}
+const dunValido=c=>{const s=String(c||'').replace(/\D/g,'');
+  return s.length===14&&digitoGS1(s.slice(0,13))===+s[13];};
+
+function barrasITF14(codigo,larguraMM,alturaMM){
+  const s=String(codigo||'').replace(/\D/g,'');
+  if(s.length!==14)return '';
+  /* N=1, W=3 é a proporção que a térmica de 203 dpi reproduz sem erro */
+  const els=[];
+  ['N','N','N','N'].forEach((t,i)=>els.push({t:t,barra:i%2===0}));   /* início */
+  for(let i=0;i<14;i+=2){
+    const a=ITF[s[i]],b=ITF[s[i+1]];
+    for(let k=0;k<5;k++){els.push({t:a[k],barra:true});els.push({t:b[k],barra:false});}
+  }
+  els.push({t:'W',barra:true},{t:'N',barra:false},{t:'N',barra:true});  /* fim */
+  const un=els.reduce((a,e)=>a+(e.t==='W'?3:1),0);
+  const quiet=10, molde=4.5;                 /* zona de silêncio e moldura */
+  const esc=larguraMM/(un+quiet*2);
+  const g=molde*esc;
+  let x=quiet*esc,r='';
+  els.forEach(e=>{
+    const w=(e.t==='W'?3:1)*esc;
+    if(e.barra)r+=`<rect x="${x.toFixed(3)}" y="${g}" width="${w.toFixed(3)}" height="${(alturaMM-g*2).toFixed(3)}"/>`;
+    x+=w;
+  });
+  /* a moldura é exigência do ITF-14: sem ela o leitor pode ler pela metade */
+  return `<svg viewBox="0 0 ${larguraMM} ${alturaMM}" width="100%" height="100%"
+    preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+    shape-rendering="crispEdges" fill="#000">
+    <rect x="0" y="0" width="${larguraMM}" height="${g}"/>
+    <rect x="0" y="${alturaMM-g}" width="${larguraMM}" height="${g}"/>
+    <rect x="0" y="0" width="${g}" height="${alturaMM}"/>
+    <rect x="${larguraMM-g}" y="0" width="${g}" height="${alturaMM}"/>
+    ${r}</svg>`;
+}
+/* 1 7898556 04010 2 — a leitura humana separa os blocos do GS1 */
+const dunLegivel=c=>{const s=String(c||'').replace(/\D/g,'');
+  return s.length===14?`${s[0]} ${s.slice(1,8)} ${s.slice(8,13)} ${s[13]}`:s;};
+
+/* =====================================================================
    PERDAS POR MOTIVO
    Duas perguntas diferentes, duas contas:
 
@@ -7870,7 +8068,7 @@ function estadoAtual(){
   return JSON.stringify({versao:1,gravado:new Date().toISOString(),
     vendo:ymd(S.page==='envase'?S.ref:S.refTq),
     ordens:ORDENS,aponta:APONTA,saldos:SALDOS,sopro:SOPRO,
-    cadastro:{insumos:INSUMOS,proxLote:PROX_LOTE,formulas:FORMULAS,funcoes:FUNCOES,validade:VALIDADE,rt:RT,operadores:OPERADORES,espec:ESPEC,preformas:PREFORMAS,prefProd:PREF_PROD,recursos:RECURSOS,gruposMaq:GRUPOS_MAQ,motivos:MOTIVOS,tolerancia:TOLERANCIA,tempos:TEMPOS,setupEnv:SETUP_ENV,tempoGranel:TEMPO_GRANEL,frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,
+    cadastro:{produtos:PRODUTOS,insumos:INSUMOS,proxLote:PROX_LOTE,formulas:FORMULAS,funcoes:FUNCOES,validade:VALIDADE,rt:RT,operadores:OPERADORES,espec:ESPEC,preformas:PREFORMAS,prefProd:PREF_PROD,recursos:RECURSOS,gruposMaq:GRUPOS_MAQ,motivos:MOTIVOS,tolerancia:TOLERANCIA,tempos:TEMPOS,setupEnv:SETUP_ENV,tempoGranel:TEMPO_GRANEL,frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,
       jornada:JORNADA,frascoProd:FRASCO_PROD,usuarios:USUARIOS}});
 }
 function aplicarEstado(txt){
@@ -7907,6 +8105,15 @@ function aplicarEstado(txt){
     });
     FRASCOS.length=0;ordenados.concat(sobra).forEach(f=>FRASCOS.push(f));
   }
+  /* Produtos não eram gravados: editar SKU, descrição ou DUN-14 durava até o
+     próximo carregamento e voltava ao que está escrito no arquivo. Agora o que
+     vem do banco é mesclado por código, e produto novo é acrescentado. */
+  if(cad.produtos&&cad.produtos.length){
+    cad.produtos.forEach(x=>{
+      const a=PRODUTOS.find(y=>String(y.codigo)===String(x.codigo));
+      if(a)Object.assign(a,x); else PRODUTOS.push(x);
+    });
+  }
   if(cad.sopradoras)cad.sopradoras.forEach((m,i)=>{if(SOPRADORAS[i])Object.assign(SOPRADORAS[i],m);});
   if(cad.tanques)cad.tanques.forEach((t,i)=>{if(TANQUES[i])Object.assign(TANQUES[i],t);});
   if(cad.jornada)Object.assign(JORNADA,cad.jornada);
@@ -7923,8 +8130,8 @@ function aplicarEstado(txt){
 function corpoDados(){
   /* só o que é dado; a data de gravação fica de fora para poder comparar */
   return JSON.stringify({ordens:ORDENS,aponta:APONTA,saldos:SALDOS,sopro:SOPRO,
-    frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,jornada:JORNADA,
-    frascoProd:FRASCO_PROD,usuarios:USUARIOS});
+    produtos:PRODUTOS,frascos:FRASCOS,sopradoras:SOPRADORAS,tanques:TANQUES,
+    jornada:JORNADA,frascoProd:FRASCO_PROD,usuarios:USUARIOS});
 }
 async function persistir(forcar){
   if(!PRONTO||salvando||RECEBENDO||MODO_TV)return;
